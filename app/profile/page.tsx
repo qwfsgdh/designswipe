@@ -162,7 +162,7 @@ export default function ProfilePage() {
                 <motion.div
                   key={design.id}
                   whileHover={{ scale: 1.05 }}
-                  className="relative overflow-hidden rounded-[20px]"
+                  className="relative overflow-hidden rounded-[20px] group"
                 >
                   <Image
                     src={design.image}
@@ -171,12 +171,21 @@ export default function ProfilePage() {
                     height={500}
                     className="object-cover w-full h-40"
                   />
-                  <button
-                    onClick={() => removeFavorite(design.id)}
-                    className="absolute top-2 right-2 bg-black/50 text-xs px-2 py-1 rounded-full hover:bg-red-500/70 transition-all"
-                  >
-                    Remove
-                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button
+                      onClick={() => removeFavorite(design.id)}
+                      className="bg-black/60 text-xs px-2 py-1 rounded-full hover:bg-red-500/70 transition-all"
+                    >
+                      Remove
+                    </button>
+                    <a
+                      href={`/analysis?design=${design.id}`}
+                      className="bg-black/60 text-xs px-2 py-1 rounded-full hover:bg-white/20 transition-all"
+                    >
+                      Analyze
+                    </a>
+                  </div>
                 </motion.div>
               ))}
             </div>

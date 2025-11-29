@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // Тип юзера (можно расширять при необходимости)
 interface UserType {
@@ -24,6 +24,10 @@ interface DesignCardType {
   image: string;
   roomType: string;
   style: string[];
+  colors: string[];
+  materials: string[];
+  propertyType: string;
+  budget: string;
 }
 
 interface AppContextType {
@@ -42,6 +46,10 @@ interface AppContextType {
   setFilters: (data: Partial<AppContextType["filters"]>) => void;
   resetFilters: () => void;
 
+  preferences: PreferenceScores;
+  registerSwipe: (card: DesignCardType, direction: "left" | "right") => void;
+  getPreferenceScore: (card: DesignCardType) => number;
+
   // избранное
   favorites: DesignCardType[];
   addFavorite: (card: DesignCardType) => void;
@@ -55,9 +63,27 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+type PreferenceMap = Record<string, number>;
+export type PreferenceScores = {
+  styles: PreferenceMap;
+  roomTypes: PreferenceMap;
+  colors: PreferenceMap;
+  materials: PreferenceMap;
+  propertyType: PreferenceMap;
+  budget: PreferenceMap;
+};
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [preferences, setPreferences] = useState<PreferenceScores>({
+    styles: {},
+    roomTypes: {},
+    colors: {},
+    materials: {},
+    propertyType: {},
+    budget: {},
+  });
 
   // --------------------------
   // ⭐ Авторизация
@@ -65,6 +91,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const getUser = async () => {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase.auth.getUser();
       setUser(data.user as UserType | null);
       setLoading(false);
@@ -72,24 +102,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     getUser();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user as UserType | null);
-    });
+    if (!supabase) return;
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user as UserType | null);
+      }
+    );
 
     return () => {
-      listener.subscription.unsubscribe();
+      listener?.subscription?.unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!supabase) {
+      alert("Google login is not configured yet. Please set Supabase keys.");
+      return;
+    }
+    const basePath =
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/designswipe")
+        ? "/designswipe"
+        : "";
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${basePath}/profile`
+        : undefined;
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: "http://localhost:3000/profile" },
+      options: redirectTo ? { redirectTo } : undefined,
     });
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
     window.location.href = "/";
   };
@@ -142,6 +192,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const clearFavorites = () => setFavorites([]);
 
+  const bump = (map: PreferenceMap, keys: string[], delta: number) => {
+    const updated: PreferenceMap = { ...map };
+    keys.forEach(key => {
+      updated[key] = (updated[key] || 0) + delta;
+    });
+    return updated;
+  };
+
+  const registerSwipe = (card: DesignCardType, direction: "left" | "right") => {
+    const delta = direction === "right" ? 1 : -0.5;
+
+    setPreferences(prev => ({
+      styles: bump(prev.styles, card.style, delta),
+      roomTypes: bump(prev.roomTypes, [card.roomType], delta),
+      colors: bump(prev.colors, card.colors, delta),
+      materials: bump(prev.materials, card.materials, delta),
+      propertyType: bump(prev.propertyType, [card.propertyType], delta),
+      budget: bump(prev.budget, [card.budget], delta),
+    }));
+
+    if (direction === "right") {
+      addFavorite(card);
+    }
+  };
+
+  const getPreferenceScore = (card: DesignCardType) => {
+    const sum = (map: PreferenceMap, keys: string[]) =>
+      keys.reduce((acc, key) => acc + (map[key] || 0), 0);
+
+    return (
+      sum(preferences.styles, card.style) +
+      sum(preferences.colors, card.colors) +
+      sum(preferences.materials, card.materials) +
+      sum(preferences.roomTypes, [card.roomType]) +
+      sum(preferences.propertyType, [card.propertyType]) +
+      sum(preferences.budget, [card.budget])
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -151,6 +240,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         filters,
         setFilters,
         resetFilters,
+
+        preferences,
+        registerSwipe,
+        getPreferenceScore,
 
         favorites,
         addFavorite,

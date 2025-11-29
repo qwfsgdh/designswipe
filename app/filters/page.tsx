@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useFilters } from "../context/FilterContext";
 import BottomNav from "@components/ui/BottomNav";
+import { filterOptions } from "@/lib/designLibrary";
 
 export default function FiltersPage() {
   const router = useRouter();
-  const { setFilters } = useFilters();
+  const { filters, setFilters } = useFilters();
 
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
@@ -16,6 +17,16 @@ export default function FiltersPage() {
   const [selectedBudget, setSelectedBudget] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [selectedPropertyType, setSelectedPropertyType] = useState<string[]>([]);
+
+  // Инициализируем выбранные значения из контекста
+  useEffect(() => {
+    setSelectedStyles(filters.styles);
+    setSelectedRooms(filters.roomTypes);
+    setSelectedPalette(filters.colors);
+    setSelectedMaterials(filters.materials);
+    setSelectedPropertyType(filters.propertyType);
+    setSelectedBudget(filters.budget ? [filters.budget] : []);
+  }, [filters]);
 
   const toggle = (set: any, value: string) => {
     set((prev: string[]) =>
@@ -49,16 +60,7 @@ export default function FiltersPage() {
       <section className="mb-8">
         <h2 className="text-lg mb-3 font-semibold">Style Preferences</h2>
         <div className="flex flex-wrap gap-3">
-          {[
-            "Modern",
-            "Scandinavian",
-            "Industrial",
-            "Minimalist",
-            "Luxury",
-            "Cozy",
-            "Classic",
-            "Contemporary",
-          ].map((style) => (
+          {filterOptions.styles.map((style) => (
             <button
               key={style}
               onClick={() => toggle(setSelectedStyles, style)}
@@ -78,21 +80,19 @@ export default function FiltersPage() {
       <section className="mb-8">
         <h2 className="text-lg mb-3 font-semibold">Property Type</h2>
         <div className="flex flex-wrap gap-3">
-          {["Apartment", "House", "Loft", "Studio", "Villa", "Office"].map(
-            (type) => (
-              <button
-                key={type}
-                onClick={() => toggle(setSelectedPropertyType, type)}
-                className={`px-5 py-2 rounded-full border transition-all ${
-                  selectedPropertyType.includes(type)
-                    ? "bg-[#00D9FF] text-[#0A0F2C]"
-                    : "border-white/20 hover:bg-white/10"
-                }`}
-              >
-                {type}
-              </button>
-            )
-          )}
+          {filterOptions.propertyTypes.map((type) => (
+            <button
+              key={type}
+              onClick={() => toggle(setSelectedPropertyType, type)}
+              className={`px-5 py-2 rounded-full border transition-all ${
+                selectedPropertyType.includes(type)
+                  ? "bg-[#00D9FF] text-[#0A0F2C]"
+                  : "border-white/20 hover:bg-white/10"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -100,15 +100,7 @@ export default function FiltersPage() {
       <section className="mb-8">
         <h2 className="text-lg mb-3 font-semibold">Room Type</h2>
         <div className="flex flex-wrap gap-3">
-          {[
-            "Living Room",
-            "Bedroom",
-            "Kitchen",
-            "Bathroom",
-            "Dining Room",
-            "Office",
-            "Hallway",
-          ].map((room) => (
+          {filterOptions.roomTypes.map((room) => (
             <button
               key={room}
               onClick={() => toggle(setSelectedRooms, room)}
@@ -128,17 +120,7 @@ export default function FiltersPage() {
       <section className="mb-8">
         <h2 className="text-lg mb-3 font-semibold">Color Palette</h2>
         <div className="flex flex-wrap gap-3">
-          {[
-            "White",
-            "Black",
-            "Gray",
-            "Beige",
-            "Blue",
-            "Green",
-            "Brown",
-            "Gold",
-            "Colorful",
-          ].map((color) => (
+          {filterOptions.colors.map((color) => (
             <button
               key={color}
               onClick={() => toggle(setSelectedPalette, color)}
@@ -158,21 +140,19 @@ export default function FiltersPage() {
       <section className="mb-8">
         <h2 className="text-lg mb-3 font-semibold">Materials</h2>
         <div className="flex flex-wrap gap-3">
-          {["Wood", "Marble", "Concrete", "Glass", "Metal", "Brick"].map(
-            (mat) => (
-              <button
-                key={mat}
-                onClick={() => toggle(setSelectedMaterials, mat)}
-                className={`px-5 py-2 rounded-full border transition-all ${
-                  selectedMaterials.includes(mat)
-                    ? "bg-[#00D9FF] text-[#0A0F2C]"
-                    : "border-white/20 hover:bg-white/10"
-                }`}
-              >
-                {mat}
-              </button>
-            )
-          )}
+          {filterOptions.materials.map((mat) => (
+            <button
+              key={mat}
+              onClick={() => toggle(setSelectedMaterials, mat)}
+              className={`px-5 py-2 rounded-full border transition-all ${
+                selectedMaterials.includes(mat)
+                  ? "bg-[#00D9FF] text-[#0A0F2C]"
+                  : "border-white/20 hover:bg-white/10"
+              }`}
+            >
+              {mat}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -180,21 +160,19 @@ export default function FiltersPage() {
       <section className="mb-10">
         <h2 className="text-lg mb-3 font-semibold">Budget Range</h2>
         <div className="flex flex-wrap gap-3">
-          {["< $5k", "$5k - $15k", "$15k - $30k", "$30k - $50k", "$50k+"].map(
-            (budget) => (
-              <button
-                key={budget}
-                onClick={() => toggle(setSelectedBudget, budget)}
-                className={`px-5 py-2 rounded-full border transition-all ${
-                  selectedBudget.includes(budget)
-                    ? "bg-[#00D9FF] text-[#0A0F2C]"
-                    : "border-white/20 hover:bg-white/10"
-                }`}
-              >
-                {budget}
-              </button>
-            )
-          )}
+          {filterOptions.budgets.map((budget) => (
+            <button
+              key={budget}
+              onClick={() => setSelectedBudget([budget])}
+              className={`px-5 py-2 rounded-full border transition-all ${
+                selectedBudget.includes(budget)
+                  ? "bg-[#00D9FF] text-[#0A0F2C]"
+                  : "border-white/20 hover:bg-white/10"
+              }`}
+            >
+              {budget}
+            </button>
+          ))}
         </div>
       </section>
 

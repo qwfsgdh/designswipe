@@ -23,16 +23,19 @@ export function ImageWithFallback({
 }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
 
+  const fallback =
+    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80";
+
   return (
     <Image
       {...rest}
-      src={error ? '/fallback.jpg' : src}
+      src={error ? fallback : src}
       alt={alt}
       width={width}
       height={height}
       className={`object-cover rounded-[20px] ${className}`}
       onError={() => setError(true)}
-      style={{ width: '100%', height: 'auto' }}
+      style={{ width: "100%", height: "auto", aspectRatio: "3 / 4" }}
       priority
     />
   );
