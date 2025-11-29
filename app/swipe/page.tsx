@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, X, SlidersHorizontal } from "lucide-react";
 import { DesignCard } from "@/components/ui/DesignCard";
@@ -13,9 +13,125 @@ interface Design {
   image: string;
   roomType: string;
   style: string[];
+  colors: string[];
+  materials: string[];
+  propertyType: string;
+  budget: string;
 }
 
-const UNSPLASH_KEY = "vJI0-o-xxyZ6LICDug5SRperkAOhfBoF8_1ripki7Qk";
+// Простая библиотека карточек, чтобы фильтры гарантированно работали без внешнего API.
+const DESIGN_LIBRARY: Design[] = [
+  {
+    id: "modern-living",
+    image:
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    roomType: "Living Room",
+    style: ["Modern", "Minimalist"],
+    colors: ["Neutral", "Light"],
+    materials: ["Wood", "Glass"],
+    propertyType: "Apartment",
+    budget: "$15k - $30k",
+  },
+  {
+    id: "scandi-bedroom",
+    image:
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+    roomType: "Bedroom",
+    style: ["Scandinavian", "Cozy"],
+    colors: ["Neutral", "Warm"],
+    materials: ["Wood", "Textile"],
+    propertyType: "Apartment",
+    budget: "$5k - $15k",
+  },
+  {
+    id: "industrial-loft",
+    image:
+      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=900&q=80",
+    roomType: "Loft",
+    style: ["Industrial"],
+    colors: ["Dark", "Cool"],
+    materials: ["Brick", "Metal", "Concrete"],
+    propertyType: "Loft",
+    budget: "$30k - $50k",
+  },
+  {
+    id: "luxury-dining",
+    image:
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+    roomType: "Dining Room",
+    style: ["Luxury", "Contemporary"],
+    colors: ["Dark", "Gold"],
+    materials: ["Marble", "Metal"],
+    propertyType: "House",
+    budget: "$50k+",
+  },
+  {
+    id: "kitchen-bright",
+    image:
+      "https://images.unsplash.com/photo-1505692069463-5e3405e3e7ee?auto=format&fit=crop&w=900&q=80",
+    roomType: "Kitchen",
+    style: ["Modern", "Minimalist"],
+    colors: ["Light", "Neutral"],
+    materials: ["Wood", "Concrete"],
+    propertyType: "Apartment",
+    budget: "$15k - $30k",
+  },
+  {
+    id: "office-warm",
+    image:
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    roomType: "Home Office",
+    style: ["Contemporary", "Cozy"],
+    colors: ["Warm", "Neutral"],
+    materials: ["Wood", "Textile"],
+    propertyType: "Apartment",
+    budget: "$5k - $15k",
+  },
+  {
+    id: "bathroom-spa",
+    image:
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    roomType: "Bathroom",
+    style: ["Minimalist"],
+    colors: ["Light", "Neutral"],
+    materials: ["Stone", "Glass"],
+    propertyType: "Apartment",
+    budget: "$15k - $30k",
+  },
+  {
+    id: "cozy-nook",
+    image:
+      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=900&q=80",
+    roomType: "Reading Nook",
+    style: ["Cozy", "Scandinavian"],
+    colors: ["Warm", "Neutral"],
+    materials: ["Wood", "Textile"],
+    propertyType: "House",
+    budget: "< $5k",
+  },
+  {
+    id: "classic-bedroom",
+    image:
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    roomType: "Bedroom",
+    style: ["Classic", "Luxury"],
+    colors: ["Dark", "Warm"],
+    materials: ["Wood", "Velvet"],
+    propertyType: "House",
+    budget: "$30k - $50k",
+  },
+  {
+    id: "colorful-living",
+    image:
+      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=900&q=80",
+    roomType: "Living Room",
+    style: ["Contemporary", "Colorful"],
+    colors: ["Colorful"],
+    materials: ["Textile", "Wood"],
+    propertyType: "Apartment",
+    budget: "$5k - $15k",
+  },
+];
 
 export default function SwipePage() {
   const { filters } = useFilters();
@@ -26,66 +142,48 @@ export default function SwipePage() {
   const [loading, setLoading] = useState(true);
   const [noResults, setNoResults] = useState(false);
 
-  // Формируем запрос к Unsplash на основе фильтров
-  const buildQuery = () => {
-    const q: string[] = [];
+  const filteredLibrary = useMemo(() => {
+    return DESIGN_LIBRARY.filter((design) => {
+      const matchesStyles =
+        !filters.styles.length ||
+        filters.styles.some((s) => design.style.includes(s));
+      const matchesRooms =
+        !filters.roomTypes.length ||
+        filters.roomTypes.includes(design.roomType);
+      const matchesColors =
+        !filters.colors.length ||
+        filters.colors.some((c) => design.colors.includes(c));
+      const matchesMaterials =
+        !filters.materials.length ||
+        filters.materials.some((m) => design.materials.includes(m));
+      const matchesProperty =
+        !filters.propertyType.length ||
+        filters.propertyType.includes(design.propertyType);
+      const matchesBudget =
+        !filters.budget || design.budget === filters.budget;
 
-    if (filters.styles.length) q.push(...filters.styles);
-    if (filters.roomTypes.length) q.push(...filters.roomTypes);
-    if (filters.colors.length) q.push(...filters.colors);
-    if (filters.materials.length) q.push(...filters.materials);
-    if (filters.propertyType.length) q.push(...filters.propertyType);
-
-    if (filters.budget) {
-      if (filters.budget.includes("$5k")) q.push("simple");
-      if (filters.budget.includes("$15k")) q.push("modern");
-      if (filters.budget.includes("$30k") || filters.budget.includes("$50k"))
-        q.push("luxury interior");
-    }
-
-    return q.length ? q.join(" ") : "modern apartment interior";
-  };
+      return (
+        matchesStyles &&
+        matchesRooms &&
+        matchesColors &&
+        matchesMaterials &&
+        matchesProperty &&
+        matchesBudget
+      );
+    });
+  }, [filters]);
 
   useEffect(() => {
-    const fetchImages = async () => {
-      setLoading(true);
-      setNoResults(false);
+    // Имитация загрузки + фильтрация локальных карточек
+    setLoading(true);
 
-      try {
-        const query = buildQuery();
-        const res = await fetch(
-          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
-            query
-          )}&orientation=portrait&per_page=20&client_id=${UNSPLASH_KEY}`
-        );
-        const data = await res.json();
+    const pool = filteredLibrary.length ? filteredLibrary : DESIGN_LIBRARY;
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
-        if (!data.results || data.results.length === 0) {
-          setNoResults(true);
-          setCards([]);
-          return;
-        }
-
-        const formatted: Design[] = data.results.map((img: any, i: number) => ({
-          id: img.id || `photo-${i}`,
-          image: img.urls?.regular,
-          roomType:
-            filters.roomTypes[0] ||
-            ["Living Room", "Bedroom", "Kitchen", "Bathroom"][i % 4],
-          style: filters.styles.length ? filters.styles : ["Modern", "Minimalist"],
-        }));
-
-        setCards(formatted);
-        setCurrentIndex(0);
-      } catch (e) {
-        console.error("Error loading images:", e);
-        setNoResults(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
+    setCards(shuffled);
+    setCurrentIndex(0);
+    setNoResults(!shuffled.length);
+    setLoading(false);
   }, [filters]);
 
   const handleSwipe = (dir: "left" | "right") => {
