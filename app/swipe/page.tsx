@@ -51,8 +51,17 @@ export default function SwipePage() {
     return designLibrary.filter(matches);
   }, [filters]);
 
+  const hasFilters =
+    filters.styles.length ||
+    filters.roomTypes.length ||
+    filters.colors.length ||
+    filters.materials.length ||
+    filters.propertyType.length ||
+    !!filters.budget;
+
   const sortedLibrary = useMemo(() => {
-    const base = filteredLibrary.length ? filteredLibrary : designLibrary;
+    const base =
+      filteredLibrary.length || !hasFilters ? filteredLibrary || designLibrary : [];
     return [...base]
       .map((design) => ({
         design,
@@ -65,13 +74,18 @@ export default function SwipePage() {
     setLoading(true);
 
     const pool = sortedLibrary.map((item) => item.design);
-    const shuffled = pool.length ? pool : designLibrary;
+    const shuffled =
+      pool.length > 0
+        ? pool
+        : hasFilters
+          ? []
+          : designLibrary;
 
     setCards(shuffled);
     setCurrentIndex(0);
-    setNoResults(!shuffled.length);
+    setNoResults(Boolean(hasFilters && !shuffled.length));
     setLoading(false);
-  }, [filters, sortedLibrary]);
+  }, [filters, hasFilters, sortedLibrary]);
 
   const handleSwipe = (dir: "left" | "right") => {
     const card = cards[currentIndex];

@@ -24,7 +24,7 @@ export const designLibrary: Design[] = [
     id: "modern-living",
     title: "Airy Modern Living",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1484156818044-c040038b0710?auto=format&fit=crop&w=1600&q=85",
     roomType: "Living Room",
     style: ["Modern", "Minimalist"],
     colors: ["Neutral", "Light"],
@@ -54,7 +54,7 @@ export const designLibrary: Design[] = [
     id: "scandi-bedroom",
     title: "Cozy Scandi Bedroom",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=-5",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=85&sat=-8",
     roomType: "Bedroom",
     style: ["Scandinavian", "Cozy"],
     colors: ["Neutral", "Warm"],
@@ -84,7 +84,7 @@ export const designLibrary: Design[] = [
     id: "industrial-loft",
     title: "Industrial Loft",
     image:
-      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1529429617124-aee7c5cdaa5a?auto=format&fit=crop&w=1600&q=85",
     roomType: "Loft",
     style: ["Industrial"],
     colors: ["Dark", "Cool"],
@@ -114,7 +114,7 @@ export const designLibrary: Design[] = [
     id: "luxury-dining",
     title: "Luxury Dining",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=10",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=85&sat=12",
     roomType: "Dining Room",
     style: ["Luxury", "Contemporary"],
     colors: ["Dark", "Gold"],
@@ -144,7 +144,7 @@ export const designLibrary: Design[] = [
     id: "bright-kitchen",
     title: "Bright Minimal Kitchen",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=-10",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=85&sat=-12&hue=10",
     roomType: "Kitchen",
     style: ["Modern", "Minimalist"],
     colors: ["Light", "Neutral"],
@@ -174,7 +174,7 @@ export const designLibrary: Design[] = [
     id: "office-warm",
     title: "Warm Home Office",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=5",
+      "https://images.unsplash.com/photo-1505693415763-3e1b2e1a1402?auto=format&fit=crop&w=1600&q=85",
     roomType: "Home Office",
     style: ["Contemporary", "Cozy"],
     colors: ["Warm", "Neutral"],
@@ -204,7 +204,7 @@ export const designLibrary: Design[] = [
     id: "bathroom-spa",
     title: "Spa Bathroom",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=-12",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=85&sat=-18&blur=0",
     roomType: "Bathroom",
     style: ["Minimalist"],
     colors: ["Light", "Neutral"],
@@ -234,7 +234,7 @@ export const designLibrary: Design[] = [
     id: "reading-nook",
     title: "Scandi Reading Nook",
     image:
-      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=85&sat=-5",
+      "https://images.unsplash.com/photo-1484100356142-db6ab6244067?auto=format&fit=crop&w=1600&q=85",
     roomType: "Reading Nook",
     style: ["Cozy", "Scandinavian"],
     colors: ["Warm", "Neutral"],
@@ -264,7 +264,7 @@ export const designLibrary: Design[] = [
     id: "classic-bedroom",
     title: "Classic Bedroom",
     image:
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=85&sat=8",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1600&q=85",
     roomType: "Bedroom",
     style: ["Classic", "Luxury"],
     colors: ["Dark", "Warm"],
@@ -294,7 +294,7 @@ export const designLibrary: Design[] = [
     id: "colorful-living",
     title: "Colorful Living",
     image:
-      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=85&sat=15",
+      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1600&q=85&sat=20&hue=18",
     roomType: "Living Room",
     style: ["Contemporary", "Colorful"],
     colors: ["Colorful"],
