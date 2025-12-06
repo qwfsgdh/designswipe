@@ -18,15 +18,17 @@ const zoneLabels: Record<(typeof zones)[number], string> = {
 
 export default function BreakdownPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const normalizedId = (rawId ?? "").replace(/^design\-/, "").trim();
 
   const design = useMemo(
-    () => mockDesigns.find((item) => item.id === id) || null,
-    [id]
+    () => mockDesigns.find((item) => String(item.id) === normalizedId) || null,
+    [normalizedId]
   );
   const breakdown = useMemo(
-    () => designBreakdowns.find((b) => b.designId === id) || null,
-    [id]
+    () =>
+      designBreakdowns.find((b) => String(b.designId) === normalizedId) || null,
+    [normalizedId]
   );
 
   useEffect(() => {
@@ -36,25 +38,24 @@ export default function BreakdownPage({ params }: { params: { id: string } }) {
     }
   }, [design, router]);
 
-  if (!id) {
-    return <div className="p-4 text-slate-400">Invalid design id.</div>;
-  }
-
   if (!design) {
     return (
-      <div className="p-4 text-slate-400">
-        Дизайн не найден. Перенаправляем обратно к свайпу...
+      <div className="p-10 text-slate-300">
+        Design not found (id = {normalizedId})
       </div>
     );
   }
 
   if (!breakdown) {
     return (
-      <div className="p-4 space-y-3">
-        <h1 className="text-xl font-semibold">Breakdown</h1>
-        <p className="text-slate-400">
-          Для этого интерьера разбор пока не подготовлен.
-        </p>
+      <div className="p-10 text-neutral-300 space-y-2">
+        <div className="text-xl font-semibold">Breakdown</div>
+        <div>
+          Для этого интерьера ещё нет разбора 🙌
+          <br />
+          Добавь breakdown в <code>designBreakdowns.ts</code> для designId ={" "}
+          {normalizedId}
+        </div>
       </div>
     );
   }
