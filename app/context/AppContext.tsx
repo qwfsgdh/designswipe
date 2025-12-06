@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { Design } from "@/lib/designLibrary";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -18,29 +19,17 @@ interface UserType {
   };
 }
 
-// Тип карточки дизайна (минимально нужный)
-interface DesignCardType {
-  id: string;
-  image: string;
-  roomType: string;
-  style: string[];
-  colors: string[];
-  materials: string[];
-  propertyType: string;
-  budget: string;
-}
-
 interface AppContextType {
   user: UserType | null;
   loading: boolean;
 
   preferences: PreferenceScores;
-  registerSwipe: (card: DesignCardType, direction: "left" | "right") => void;
-  getPreferenceScore: (card: DesignCardType) => number;
+  registerSwipe: (card: Design, direction: "left" | "right") => void;
+  getPreferenceScore: (card: Design) => number;
 
   // избранное
-  favorites: DesignCardType[];
-  addFavorite: (card: DesignCardType) => void;
+  favorites: Design[];
+  addFavorite: (card: Design) => void;
   removeFavorite: (id: string) => void;
   clearFavorites: () => void;
 
@@ -136,9 +125,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ⭐ Избранное
   // --------------------------
 
-  const [favorites, setFavorites] = useState<DesignCardType[]>([]);
+  const [favorites, setFavorites] = useState<Design[]>([]);
 
-  const addFavorite = (card: DesignCardType) => {
+  const addFavorite = (card: Design) => {
     setFavorites(prev => {
       // не добавляем дубли
       if (prev.some(item => item.id === card.id)) return prev;
@@ -160,7 +149,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return updated;
   };
 
-  const registerSwipe = (card: DesignCardType, direction: "left" | "right") => {
+  const registerSwipe = (card: Design, direction: "left" | "right") => {
     const delta = direction === "right" ? 1 : -0.5;
 
     setPreferences(prev => ({
@@ -177,7 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const getPreferenceScore = (card: DesignCardType) => {
+  const getPreferenceScore = (card: Design) => {
     const sum = (map: PreferenceMap, keys: string[]) =>
       keys.reduce((acc, key) => acc + (map[key] || 0), 0);
 

@@ -8,16 +8,42 @@ import { useFilters } from "@/app/context/FilterContext";
 import { useApp } from "@/app/context/AppContext";
 import { designLibrary, Design } from "@/lib/designLibrary";
 import { useRouter } from "next/navigation";
+import { fetchUnsplashDesigns } from "@/lib/unsplash";
 
 export default function SwipePage() {
   const { filters } = useFilters();
   const { registerSwipe, getPreferenceScore } = useApp();
   const router = useRouter();
 
+  const [remoteDesigns, setRemoteDesigns] = useState<Design[]>([]);
+  const [remoteError, setRemoteError] = useState<string | null>(null);
   const [cards, setCards] = useState<Design[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [noResults, setNoResults] = useState(false);
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+    if (!key) return;
+
+    const controller = new AbortController();
+    fetchUnsplashDesigns(key, controller.signal)
+      .then((items) => {
+        setRemoteDesigns(items);
+        setRemoteError(null);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        setRemoteError(err.message || "Failed to load external designs");
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const baseLibrary = useMemo(
+    () => (remoteDesigns.length ? [...remoteDesigns, ...designLibrary] : designLibrary),
+    [remoteDesigns]
+  );
 
   const filteredLibrary = useMemo(() => {
     const matches = (design: Design) => {
@@ -47,8 +73,8 @@ export default function SwipePage() {
       );
     };
 
-    return designLibrary.filter(matches);
-  }, [filters]);
+    return baseLibrary.filter(matches);
+  }, [filters, baseLibrary]);
 
   const hasFilters =
     filters.styles.length ||
@@ -60,14 +86,14 @@ export default function SwipePage() {
 
   const sortedLibrary = useMemo(() => {
     const base =
-      filteredLibrary.length || !hasFilters ? filteredLibrary || designLibrary : [];
+      filteredLibrary.length || !hasFilters ? filteredLibrary || baseLibrary : [];
     return [...base]
       .map((design) => ({
         design,
         score: getPreferenceScore(design),
       }))
       .sort((a, b) => b.score - a.score);
-  }, [filteredLibrary, getPreferenceScore]);
+  }, [filteredLibrary, getPreferenceScore, baseLibrary]);
 
   useEffect(() => {
     setLoading(true);
@@ -149,6 +175,12 @@ export default function SwipePage() {
           <span>Filters</span>
         </motion.button>
       </div>
+
+      {remoteError && (
+        <p className="text-red-300 text-sm mb-4 max-w-md text-center">
+          {remoteError}
+        </p>
+      )}
 
       {/* Card stack */}
       <div className="relative w-full max-w-md h-[600px] mb-8">

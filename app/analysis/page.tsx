@@ -15,9 +15,17 @@ export default function AnalysisPage() {
 
   const favoriteDesigns = useMemo(() => {
     if (!favorites.length) return [];
-    return favorites
-      .map((fav) => designLibrary.find((d) => d.id === fav.id) || null)
-      .filter(Boolean) as Design[];
+    return favorites.map((fav) => {
+      const fromLibrary = designLibrary.find((d) => d.id === fav.id);
+      if (fromLibrary) return fromLibrary;
+      return {
+        ...fav,
+        title: fav.title || fav.roomType || "Favorite design",
+        palette: fav.palette || [],
+        sources: fav.sources || [],
+        description: fav.description,
+      };
+    });
   }, [favorites]);
 
   useEffect(() => {
@@ -108,27 +116,33 @@ export default function AnalysisPage() {
               <ShoppingBag className="w-5 h-5 text-[#00D9FF]" />
               Где купить
             </h3>
-            <div className="space-y-3">
-              {selectedDesign.sources.map((source) => (
-                <div
-                  key={source.url}
-                  className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3"
-                >
-                  <div>
-                    <p className="font-medium">{source.name}</p>
-                    <p className="text-xs text-gray-400">{source.store}</p>
-                  </div>
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 text-[#00D9FF] hover:text-white"
+            {selectedDesign.sources?.length ? (
+              <div className="space-y-3">
+                {selectedDesign.sources.map((source) => (
+                  <div
+                    key={source.url}
+                    className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3"
                   >
-                    Открыть <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              ))}
-            </div>
+                    <div>
+                      <p className="font-medium">{source.name}</p>
+                      <p className="text-xs text-gray-400">{source.store}</p>
+                    </div>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 text-[#00D9FF] hover:text-white"
+                    >
+                      Открыть <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">
+                Прямые ссылки ещё не добавлены для этого дизайна.
+              </p>
+            )}
           </motion.div>
         </div>
       )}
