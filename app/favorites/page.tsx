@@ -24,6 +24,7 @@ export default function FavoritesPage() {
           isFavorite
           onToggleFavorite={() => toggleFavorite(image.id)}
           onNext={() => {}}
+          priority={false}
         />
       ))}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useFilters } from "../context/FilterContext";
 import FiltersBar from "@/components/ui/FiltersBar";
@@ -15,7 +15,8 @@ export default function SwipePage() {
   console.log("TOTAL DESIGNS =", mockDesigns.length);
 
   const filtered = useMemo(() => {
-    return images.filter((img) => {
+    const base = images.length ? images : mockDesigns;
+    return base.filter((img) => {
       if (filters.style && img.style !== filters.style) return false;
       if (filters.roomType && img.roomType !== filters.roomType) return false;
       if (filters.colorPalette && img.colorPalette !== filters.colorPalette)
@@ -25,16 +26,36 @@ export default function SwipePage() {
     });
   }, [images, filters]);
 
-  const swipePool = filtered.length > 6 ? filtered : mockDesigns;
+  useEffect(() => {
+    setIndex(0);
+  }, [filters]);
 
-  const current = swipePool[index] ?? null;
+  if (!filtered.length) {
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <FiltersBar />
+        <div className="text-neutral-400 text-center mt-20">
+          Нет подходящих интерьеров под текущие фильтры
+        </div>
+      </div>
+    );
+  }
+
+  if (index >= filtered.length) {
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <FiltersBar />
+        <div className="text-neutral-400 text-center mt-20">
+          Больше интерьеров нет под текущие фильтры
+        </div>
+      </div>
+    );
+  }
+
+  const current = filtered[index] ?? null;
 
   const onNext = () => {
-    setIndex((prev) => {
-      const next = prev + 1;
-      if (next >= swipePool.length) return 0;
-      return next;
-    });
+    setIndex((prev) => prev + 1);
   };
 
   return (
@@ -53,6 +74,7 @@ export default function SwipePage() {
           isFavorite={favorites.some((f) => f.id === current.id)}
           onToggleFavorite={() => toggleFavorite(current.id)}
           onNext={onNext}
+          priority={index === 0}
         />
       )}
     </div>

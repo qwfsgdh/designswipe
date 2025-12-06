@@ -10,6 +10,7 @@ type Props = {
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onNext: () => void;
+  priority?: boolean;
 };
 
 export default function DesignCard({
@@ -17,20 +18,18 @@ export default function DesignCard({
   isFavorite,
   onToggleFavorite,
   onNext,
+  priority = false,
 }: Props) {
   return (
     <div className="mt-4 flex flex-col gap-4">
-      <div
-        className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl"
-        style={{ height: "70vh" }}
-      >
+      <div className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl">
         <Image
           src={image.src}
           alt={image.title}
-          fill
-          sizes="(max-width: 900px) 900px, 100vw"
-          style={{ objectFit: "cover" }}
-          priority
+          width={900}
+          height={600}
+          style={{ objectFit: "cover", borderRadius: "1rem" }}
+          priority={priority}
         />
 
         <button
