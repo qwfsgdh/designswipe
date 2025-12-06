@@ -5,11 +5,14 @@ import { useApp } from "../context/AppContext";
 import { useFilters } from "../context/FilterContext";
 import FiltersBar from "@/components/ui/FiltersBar";
 import DesignCard from "@/components/ui/DesignCard";
+import { mockDesigns } from "@/lib/mockDesigns";
 
 export default function SwipePage() {
   const { images, favorites, toggleFavorite } = useApp();
   const { filters } = useFilters();
   const [index, setIndex] = useState(0);
+
+  console.log("TOTAL DESIGNS =", mockDesigns.length);
 
   const filtered = useMemo(() => {
     return images.filter((img) => {
@@ -22,12 +25,14 @@ export default function SwipePage() {
     });
   }, [images, filters]);
 
-  const current = filtered[index] ?? null;
+  const swipePool = filtered.length > 6 ? filtered : mockDesigns;
+
+  const current = swipePool[index] ?? null;
 
   const onNext = () => {
     setIndex((prev) => {
       const next = prev + 1;
-      if (next >= filtered.length) return 0;
+      if (next >= swipePool.length) return 0;
       return next;
     });
   };

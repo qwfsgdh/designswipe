@@ -20,13 +20,17 @@ export default function DesignCard({
 }: Props) {
   return (
     <div className="mt-4 flex flex-col gap-4">
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-slate-700 bg-slate-900">
+      <div
+        className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl"
+        style={{ height: "70vh" }}
+      >
         <Image
           src={image.src}
           alt={image.title}
           fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 600px"
+          sizes="(max-width: 900px) 900px, 100vw"
+          style={{ objectFit: "cover" }}
+          priority
         />
 
         <button
