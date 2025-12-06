@@ -44,8 +44,13 @@ export default function DesignCard({
   return (
     <div className="mt-4 flex flex-col gap-4">
       <div
-        className="relative mx-auto"
-        style={{ maxWidth: "90vw", maxHeight: "75vh" }}
+        className="mx-auto"
+        style={{
+          width: "100%",
+          maxWidth: "900px",
+          height: "600px",
+          position: "relative",
+        }}
       >
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 bg-slate-900/50">
@@ -60,6 +65,7 @@ export default function DesignCard({
           sizes="90vw"
           style={{
             objectFit: image.orientation === "vertical" ? "contain" : "cover",
+            borderRadius: "12px",
           }}
           onError={handleError}
           onLoadingComplete={() => setIsLoaded(true)}
