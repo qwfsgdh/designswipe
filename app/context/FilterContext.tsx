@@ -14,25 +14,7 @@ type FilterContextValue = {
   resetFilters: () => void;
 };
 
-const defaultFilters: FilterState = {
-  style: null,
-  room: null,
-  palette: null,
-  budget: null,
-  lighting: null,
-  furnitureDensity: null,
-  material: null,
-  theme: null,
-  composition: null,
-  dominantColor: null,
-  windowPresence: null,
-  plantPresence: null,
-  flooring: null,
-  artPresence: null,
-  aspectRatio: null,
-  orientation: null,
-  qualityMin: null,
-};
+const defaultFilters: FilterState = {};
 
 const FilterContext = createContext<FilterContextValue | null>(null);
 
@@ -40,7 +22,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
   const setFilter = (key: keyof FilterState, value: FilterState[keyof FilterState]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value ?? undefined }));
   };
 
   const resetFilters = () => setFilters(defaultFilters);

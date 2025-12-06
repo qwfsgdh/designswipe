@@ -1,54 +1,47 @@
 import type { Design, FilterState } from "./types";
-import { STYLE_KEYWORDS, fuzzyMatch } from "./styleKeywords";
 
-const normalize = (value: string) =>
-  value.trim().toLowerCase().replace(/\s+/g, "_");
+export function applyFilters(designs: Design[], filters: FilterState): Design[] {
+  const {
+    style,
+    room,
+    palette,
+    budget,
+    lighting,
+    material,
+    orientation,
+    theme,
+    qualityMin,
+  } = filters;
 
-const matches = (value: string | number, filterValue: string | null) => {
-  if (!filterValue) return true;
-  return normalize(String(value)) === normalize(filterValue);
-};
-
-export const applyFilters = (designs: Design[], filters: FilterState) => {
-  const filteredRaw = designs.filter((design) => {
-    const description = `${design.title} ${design.description || ""}`;
-
-    if (filters.style) {
-      const keywords = STYLE_KEYWORDS[filters.style] || [];
-      if (!fuzzyMatch(description, keywords)) return false;
-    }
-    if (!matches(design.room, filters.room)) return false;
-    if (!matches(design.palette, filters.palette)) return false;
-    if (!matches(design.budget, filters.budget)) return false;
-    if (!matches(design.lighting, filters.lighting)) return false;
-    if (!matches(design.furnitureDensity, filters.furnitureDensity)) return false;
-    if (!matches(design.material, filters.material)) return false;
-    if (!matches(design.theme, filters.theme)) return false;
-    if (!matches(design.composition, filters.composition)) return false;
-    if (!matches(design.dominantColor, filters.dominantColor)) return false;
-    if (!matches(design.windowPresence, filters.windowPresence)) return false;
-    if (!matches(design.plantPresence, filters.plantPresence)) return false;
-    if (!matches(design.flooring, filters.flooring)) return false;
-    if (!matches(design.artPresence, filters.artPresence)) return false;
-    if (!matches(design.aspectRatio, filters.aspectRatio)) return false;
-    if (!matches(design.orientation, filters.orientation)) return false;
-    if (filters.qualityMin !== null && design.qualityScore < filters.qualityMin) {
+  let result = designs.filter((d) => {
+    if (style && d.style !== style) return false;
+    if (room && d.room !== room) return false;
+    if (palette && d.palette !== palette) return false;
+    if (budget && d.budget !== budget) return false;
+    if (lighting && d.lighting !== lighting) return false;
+    if (material && d.material !== material) return false;
+    if (orientation && d.orientation !== orientation) return false;
+    if (theme && d.theme !== theme) return false;
+    if (typeof qualityMin === "number" && d.qualityScore < qualityMin) {
       return false;
     }
     return true;
   });
 
-  let filtered = filteredRaw;
+  if (result.length < 24) {
+    const sorted = [...designs].sort((a, b) => b.qualityScore - a.qualityScore);
 
-  if (filtered.length < 8) {
-    filtered = designs
-      .filter((design) => design.qualityScore >= (filters.qualityMin ?? 30))
-      .slice(0, 20);
+    result = sorted.filter((d) => {
+      if (style && d.style !== style) return false;
+      if (room && d.room !== room) return false;
+      if (typeof qualityMin === "number" && d.qualityScore < qualityMin) return false;
+      return true;
+    });
+
+    if (result.length < 24) {
+      result = sorted.slice(0, 24);
+    }
   }
 
-  if (filtered.length < 6 && designs.length > 10) {
-    filtered = designs.slice(0, 12);
-  }
-
-  return filtered;
-};
+  return result;
+}

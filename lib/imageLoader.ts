@@ -33,10 +33,7 @@ const buildQuery = (filters: FilterState) => {
 };
 
 const deriveDesign = (base: Partial<Design>, fallback: FilterState): Design => {
-  const pick = <K extends keyof FilterState>(
-    key: K,
-    defaults: Design[keyof Design]
-  ) => {
+  const pick = <K extends keyof FilterState>(key: K, defaults: Design[keyof Design]) => {
     const value = fallback[key];
     return (value as Design[keyof Design]) || defaults;
   };
@@ -44,42 +41,21 @@ const deriveDesign = (base: Partial<Design>, fallback: FilterState): Design => {
   return {
     id: base.id || crypto.randomUUID(),
     title: base.title || "Curated Interior",
+    description: base.description || "",
     src: base.src || "",
     style: base.style || (pick("style", "modern") as Design["style"]),
     room: base.room || (pick("room", "living_room") as Design["room"]),
     palette: base.palette || (pick("palette", "neutral") as Design["palette"]),
     budget: base.budget || (pick("budget", "medium") as Design["budget"]),
-    lighting:
-      base.lighting || (pick("lighting", "mixed") as Design["lighting"]),
-    furnitureDensity:
-      base.furnitureDensity ||
-      (pick("furnitureDensity", "normal") as Design["furnitureDensity"]),
+    lighting: base.lighting || (pick("lighting", "ambient") as Design["lighting"]),
     material: base.material || (pick("material", "mixed") as Design["material"]),
-    theme: base.theme || (pick("theme", "modern") as Design["theme"]),
-    composition:
-      base.composition ||
-      (pick("composition", "centered") as Design["composition"]),
-    dominantColor:
-      base.dominantColor ||
-      (pick("dominantColor", "beige") as Design["dominantColor"]),
-    windowPresence:
-      base.windowPresence ||
-      (pick("windowPresence", "yes") as Design["windowPresence"]),
-    plantPresence:
-      base.plantPresence ||
-      (pick("plantPresence", "no") as Design["plantPresence"]),
-    flooring: base.flooring || (pick("flooring", "wood") as Design["flooring"]),
-    artPresence:
-      base.artPresence ||
-      (pick("artPresence", "yes") as Design["artPresence"]),
-    aspectRatio:
-      base.aspectRatio ||
-      (pick("aspectRatio", "landscape") as Design["aspectRatio"]),
-    orientation:
-      base.orientation ||
-      (pick("orientation", "horizontal") as Design["orientation"]),
-    qualityScore: base.qualityScore ?? 80,
-    description: base.description || "",
+    orientation: base.orientation || (pick("orientation", "horizontal") as Design["orientation"]),
+    dominantColor: base.dominantColor || "beige",
+    hasWindow: base.hasWindow ?? true,
+    hasPlants: base.hasPlants ?? false,
+    floorType: base.floorType || "wood",
+    theme: base.theme || (pick("theme", "cozy") as Design["theme"]),
+    qualityScore: base.qualityScore ?? 8,
   };
 };
 

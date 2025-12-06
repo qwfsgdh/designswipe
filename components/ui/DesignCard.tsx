@@ -1,112 +1,63 @@
 "use client";
 
 import type { Design } from "@/lib/types";
-import { Heart, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
 
 type Props = {
-  image: Design;
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
+  design: Design;
   onNext: () => void;
-  priority?: boolean;
+  onPrev?: () => void;
 };
 
-export default function DesignCard({
-  image,
-  isFavorite,
-  onToggleFavorite,
-  onNext,
-  priority = false,
-}: Props) {
-  const MAX_RETRIES = 1;
-  const [retryCount, setRetryCount] = useState(0);
-  const [imageKey, setImageKey] = useState(() => Date.now());
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  const refreshImage = () => setImageKey(Date.now());
-
-  const handleError = () => {
-    if (retryCount < MAX_RETRIES) {
-      setRetryCount((prev) => prev + 1);
-      setTimeout(() => refreshImage(), 300);
-    } else {
-      onNext();
-    }
-  };
-
-  const handleNext = () => {
-    setTimeout(() => onNext(), 350);
-  };
-
+export default function DesignCard({ design, onNext, onPrev }: Props) {
   return (
-    <div className="mt-4 flex flex-col gap-4">
+    <div className="w-full flex flex-col items-center gap-4">
       <div
-        className="mx-auto"
         style={{
           width: "100%",
           maxWidth: "900px",
           height: "600px",
           position: "relative",
+          borderRadius: "16px",
+          overflow: "hidden",
+          background: "#111",
         }}
       >
-        {!isLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 bg-slate-900/50">
-            Loading…
-          </div>
-        )}
         <Image
-          key={imageKey}
-          src={image.src}
-          alt={image.title}
-          fill
-          sizes="90vw"
+          src={design.src}
+          alt={design.title}
+          width={900}
+          height={600}
           style={{
-            objectFit: image.orientation === "vertical" ? "contain" : "cover",
+            objectFit: design.orientation === "vertical" ? "contain" : "cover",
             borderRadius: "12px",
           }}
-          onError={handleError}
-          onLoadingComplete={() => setIsLoaded(true)}
-          priority={priority}
+          className="w-full h-full"
+          unoptimized
         />
-
-        <button
-          onClick={onToggleFavorite}
-          className="absolute top-3 right-3 rounded-full bg-slate-900/70 p-2"
-        >
-          <Heart
-            className={`w-5 h-5 ${
-              isFavorite ? "text-pink-400 fill-pink-400" : "text-slate-100"
-            }`}
-          />
-        </button>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">{image.title}</h2>
-          <p className="text-xs text-slate-400">
-            {image.style} · {image.room} · {image.palette} ·{" "}
-            {image.budget.toUpperCase()}
-          </p>
-        </div>
-        <button
-          onClick={handleNext}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500 text-slate-950 text-sm font-medium"
-        >
-          Next
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      <div className="text-center text-sm text-neutral-300 max-w-xl px-4">
+        <div className="font-semibold mb-1">{design.title}</div>
+        <div className="text-neutral-400">{design.description}</div>
       </div>
 
-      <Link
-        href={`/breakdown/${image.id}`}
-        className="text-xs text-sky-300 underline"
-      >
-        Open breakdown (стул — ИКЕА, стол — Леруа и т.д.)
-      </Link>
+      <div className="flex gap-4 mt-2">
+        {onPrev && (
+          <button
+            className="px-4 py-2 rounded-full border border-neutral-600 text-sm"
+            onClick={onPrev}
+          >
+            Назад
+          </button>
+        )}
+        <button
+          className="px-6 py-2 rounded-full bg-white text-black text-sm font-semibold"
+          onClick={onNext}
+        >
+          Следующий интерьер
+        </button>
+      </div>
     </div>
   );
 }
