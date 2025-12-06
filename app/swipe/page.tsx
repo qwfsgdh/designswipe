@@ -8,7 +8,6 @@ import { useFilters } from "@/app/context/FilterContext";
 import { useApp } from "@/app/context/AppContext";
 import { designLibrary, Design } from "@/lib/designLibrary";
 import { useRouter } from "next/navigation";
-import BottomNav from "@/components/ui/BottomNav";
 
 export default function SwipePage() {
   const { filters } = useFilters();
@@ -224,12 +223,10 @@ export default function SwipePage() {
           whileTap={{ scale: 0.9 }}
           className="w-20 h-20 rounded-full bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] flex items-center justify-center shadow-[0_0_30px_rgba(0,217,255,0.3)] hover:shadow-[0_0_50px_rgba(0,217,255,0.5)] transition-all"
           onClick={() => handleSwipe("right")}
-        >
-          <Heart className="w-10 h-10 text-[#0A0F2C] fill-[#0A0F2C]" />
-        </motion.button>
-      </motion.div>
-
-      <BottomNav />
+      >
+        <Heart className="w-10 h-10 text-[#0A0F2C] fill-[#0A0F2C]" />
+      </motion.button>
+    </motion.div>
     </div>
   );
 }

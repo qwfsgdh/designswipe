@@ -12,12 +12,11 @@ import {
 import Image from "next/image";
 import { useApp } from "@/app/context/AppContext";
 import { useFilters } from "@/app/context/FilterContext";
-import BottomNav from "@/components/ui/BottomNav";
 import LoginPage from "@/components/auth/LoginPage";
 
 export default function ProfilePage() {
-  const { user, favorites, resetFilters, removeFavorite, clearFavorites, signOut } = useApp();
-  const { filters } = useFilters();
+  const { user, favorites, removeFavorite, clearFavorites, signOut } = useApp();
+  const { filters, resetFilters } = useFilters();
 
   // 🔐 Если пользователь не авторизован — показать LoginPage
   if (!user) {
@@ -213,8 +212,6 @@ export default function ProfilePage() {
         <RefreshCw className="w-5 h-5" />
         Reset Filters
       </motion.button>
-
-      <BottomNav />
     </div>
   );
 }

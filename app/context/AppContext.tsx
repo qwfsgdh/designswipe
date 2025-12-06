@@ -34,18 +34,6 @@ interface AppContextType {
   user: UserType | null;
   loading: boolean;
 
-  // фильтры
-  filters: {
-    styles: string[];
-    colors: string[];
-    materials: string[];
-    propertyType: string[];
-    roomTypes: string[];
-    budget: string | null;
-  };
-  setFilters: (data: Partial<AppContextType["filters"]>) => void;
-  resetFilters: () => void;
-
   preferences: PreferenceScores;
   registerSwipe: (card: DesignCardType, direction: "left" | "right") => void;
   getPreferenceScore: (card: DesignCardType) => number;
@@ -145,34 +133,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // --------------------------
-  // ⭐ Фильтры
-  // --------------------------
-
-  const [filters, setFiltersState] = useState<AppContextType["filters"]>({
-    styles: [],
-    colors: [],
-    materials: [],
-    propertyType: [],
-    roomTypes: [],
-    budget: null,
-  });
-
-  const setFilters = (update: Partial<AppContextType["filters"]>) => {
-    setFiltersState(prev => ({ ...prev, ...update }));
-  };
-
-  const resetFilters = () => {
-    setFiltersState({
-      styles: [],
-      colors: [],
-      materials: [],
-      propertyType: [],
-      roomTypes: [],
-      budget: null,
-    });
-  };
-
-  // --------------------------
   // ⭐ Избранное
   // --------------------------
 
@@ -236,10 +196,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
-
-        filters,
-        setFilters,
-        resetFilters,
 
         preferences,
         registerSwipe,

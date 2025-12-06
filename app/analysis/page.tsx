@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "@/app/context/AppContext";
 import { designLibrary, Design } from "@/lib/designLibrary";
-import BottomNav from "@/components/ui/BottomNav";
 import { ExternalLink, ShoppingBag } from "lucide-react";
 
 const findDesign = (id: string | null, fallback: Design[]) =>
@@ -38,7 +37,6 @@ export default function AnalysisPage() {
           <p className="text-gray-400">
             Добавьте дизайн в избранное на странице свайпов, чтобы проанализировать его детали.
           </p>
-          <BottomNav />
         </div>
       </div>
     );
@@ -135,7 +133,6 @@ export default function AnalysisPage() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }

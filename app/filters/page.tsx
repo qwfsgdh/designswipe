@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useFilters } from "../context/FilterContext";
-import BottomNav from "@components/ui/BottomNav";
 import { filterOptions } from "@/lib/designLibrary";
 
 export default function FiltersPage() {
@@ -180,13 +179,11 @@ export default function FiltersPage() {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={handleApplyFilters}
-        className="w-full py-4 bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] rounded-[20px] text-[#0A0F2C] font-semibold shadow-[0_0_30px_rgba(0,217,255,0.3)]"
-      >
-        Apply Filters
-      </motion.button>
-
-      <BottomNav />
+      onClick={handleApplyFilters}
+      className="w-full py-4 bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] rounded-[20px] text-[#0A0F2C] font-semibold shadow-[0_0_30px_rgba(0,217,255,0.3)]"
+    >
+      Apply Filters
+    </motion.button>
     </div>
   );
 }
