@@ -2,6 +2,7 @@
 
 import type { Design } from "@/lib/types";
 import Image from "next/image";
+import Link from "next/link";
 
 type Props = {
   design: Design;
@@ -58,6 +59,13 @@ export default function DesignCard({ design, onNext, onPrev }: Props) {
           Следующий интерьер
         </button>
       </div>
+
+      <Link
+        href={`/breakdown/${design.id}`}
+        className="text-xs text-sky-300 underline"
+      >
+        Разбор: что за мебель на фото
+      </Link>
     </div>
   );
 }

@@ -63,3 +63,20 @@ export type FilterState = {
   theme?: Theme;
   qualityMin?: number;
 };
+
+export type DesignBreakdownItem = {
+  category: string;
+  title: string;
+  material: string;
+  palette: string;
+  style: string;
+  similarity: number; // 0–1
+  link1?: string;
+  link2?: string;
+  link3?: string;
+};
+
+export type DesignBreakdown = {
+  designId: string;
+  items: DesignBreakdownItem[];
+};
