@@ -4,6 +4,7 @@ import type { Design } from "@/lib/types";
 import { Heart, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 type Props = {
   image: Design;
@@ -20,7 +21,25 @@ export default function DesignCard({
   onNext,
   priority = false,
 }: Props) {
-  const onSkip = () => onNext();
+  const MAX_RETRIES = 1;
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageKey, setImageKey] = useState(() => Date.now());
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const refreshImage = () => setImageKey(Date.now());
+
+  const handleError = () => {
+    if (retryCount < MAX_RETRIES) {
+      setRetryCount((prev) => prev + 1);
+      setTimeout(() => refreshImage(), 300);
+    } else {
+      onNext();
+    }
+  };
+
+  const handleNext = () => {
+    setTimeout(() => onNext(), 350);
+  };
 
   return (
     <div className="mt-4 flex flex-col gap-4">
@@ -28,7 +47,13 @@ export default function DesignCard({
         className="relative mx-auto"
         style={{ maxWidth: "90vw", maxHeight: "75vh" }}
       >
+        {!isLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 bg-slate-900/50">
+            Loading…
+          </div>
+        )}
         <Image
+          key={imageKey}
           src={image.src}
           alt={image.title}
           fill
@@ -36,7 +61,8 @@ export default function DesignCard({
           style={{
             objectFit: image.orientation === "vertical" ? "contain" : "cover",
           }}
-          onError={onSkip}
+          onError={handleError}
+          onLoadingComplete={() => setIsLoaded(true)}
           priority={priority}
         />
 
@@ -61,7 +87,7 @@ export default function DesignCard({
           </p>
         </div>
         <button
-          onClick={onNext}
+          onClick={handleNext}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500 text-slate-950 text-sm font-medium"
         >
           Next
