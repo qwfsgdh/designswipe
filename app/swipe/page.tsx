@@ -8,7 +8,7 @@ import { useFilters } from "@/app/context/FilterContext";
 import { useApp } from "@/app/context/AppContext";
 import { designLibrary, Design } from "@/lib/designLibrary";
 import { useRouter } from "next/navigation";
-import { fetchUnsplashDesigns } from "@/lib/unsplash";
+import { useCallback } from "react";
 
 export default function SwipePage() {
   const { filters } = useFilters();
@@ -22,23 +22,34 @@ export default function SwipePage() {
   const [loading, setLoading] = useState(true);
   const [noResults, setNoResults] = useState(false);
 
+  const fetchRemote = useCallback(async () => {
+    setRemoteError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filters.styles[0]) params.append("style", filters.styles[0]);
+      if (filters.roomTypes[0]) params.append("room", filters.roomTypes[0]);
+      if (filters.colors[0]) params.append("color", filters.colors[0]);
+      if (filters.materials[0]) params.append("material", filters.materials[0]);
+      if (filters.propertyType[0]) params.append("property", filters.propertyType[0]);
+      if (filters.budget) params.append("budget", filters.budget);
+
+      const res = await fetch(`/api/designs?${params.toString()}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to load designs (${res.status})`);
+      }
+      const data = (await res.json()) as { items: Design[] };
+      setRemoteDesigns(data.items);
+    } catch (err) {
+      setRemoteError(
+        err instanceof Error ? err.message : "Failed to load external designs"
+      );
+    }
+  }, [filters]);
+
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-    if (!key) return;
-
-    const controller = new AbortController();
-    fetchUnsplashDesigns(key, controller.signal)
-      .then((items) => {
-        setRemoteDesigns(items);
-        setRemoteError(null);
-      })
-      .catch((err) => {
-        if (controller.signal.aborted) return;
-        setRemoteError(err.message || "Failed to load external designs");
-      });
-
-    return () => controller.abort();
-  }, []);
+    fetchRemote();
+  }, [fetchRemote]);
 
   const baseLibrary = useMemo(
     () => (remoteDesigns.length ? [...remoteDesigns, ...designLibrary] : designLibrary),
@@ -61,7 +72,8 @@ export default function SwipePage() {
       const matchesProperty =
         !filters.propertyType.length ||
         filters.propertyType.includes(design.propertyType);
-      const matchesBudget = !filters.budget || design.budget === filters.budget;
+      const matchesBudget =
+        !filters.budget || design.budget === filters.budget || design.budget === "Flexible";
 
       return (
         matchesStyles &&

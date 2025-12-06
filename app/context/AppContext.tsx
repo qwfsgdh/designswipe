@@ -72,6 +72,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
         return;
       }
+
+      // Завершаем OAuth-колбек, если есть code из Supabase
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+          url.searchParams.delete("code");
+          url.searchParams.delete("state");
+          const cleaned = url.toString();
+          window.history.replaceState({}, "", cleaned);
+        }
+      }
+
       const { data } = await supabase.auth.getUser();
       setUser(data.user as UserType | null);
       setLoading(false);

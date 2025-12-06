@@ -1,6 +1,6 @@
 import type { Design } from "./designLibrary";
 
-type UnsplashPhoto = {
+export type UnsplashPhoto = {
   id: string;
   description?: string | null;
   alt_description?: string | null;
@@ -11,23 +11,44 @@ type UnsplashPhoto = {
   tags?: Array<{ title?: string }>;
 };
 
-const guessStyle = (tags: string[] = []): string[] => {
-  const normalized = tags.map(t => t.toLowerCase());
+export type DesignSeed = {
+  style?: string[];
+  roomType?: string;
+  colors?: string[];
+  materials?: string[];
+  propertyType?: string;
+  budget?: string;
+};
+
+const normalize = (value?: string | null) => (value || "").toLowerCase();
+
+export const guessStyle = (tags: string[] = []): string[] => {
+  const normalized = tags.map(normalize);
   if (normalized.some(t => t.includes("modern") || t.includes("minimal"))) {
     return ["Modern", "Minimalist"];
   }
-  if (normalized.some(t => t.includes("scandi"))) return ["Scandinavian"];
-  if (normalized.some(t => t.includes("industrial"))) return ["Industrial"];
-  if (normalized.some(t => t.includes("luxury"))) return ["Luxury"];
+  if (normalized.some(t => t.includes("scandi") || t.includes("nordic"))) {
+    return ["Scandinavian"];
+  }
+  if (normalized.some(t => t.includes("industrial") || t.includes("loft"))) {
+    return ["Industrial"];
+  }
+  if (normalized.some(t => t.includes("luxury") || t.includes("elegant"))) {
+    return ["Luxury"];
+  }
+  if (normalized.some(t => t.includes("cozy"))) {
+    return ["Cozy"];
+  }
   return ["Contemporary"];
 };
 
-const guessRoom = (tags: string[] = []): string => {
-  const normalized = tags.map(t => t.toLowerCase());
+export const guessRoom = (tags: string[] = []): string => {
+  const normalized = tags.map(normalize);
   if (normalized.some(t => t.includes("kitchen"))) return "Kitchen";
   if (normalized.some(t => t.includes("bedroom"))) return "Bedroom";
   if (normalized.some(t => t.includes("office"))) return "Home Office";
   if (normalized.some(t => t.includes("dining"))) return "Dining Room";
+  if (normalized.some(t => t.includes("bath"))) return "Bathroom";
   return "Living Room";
 };
 
@@ -36,18 +57,18 @@ const buildPalette = (color?: string | null) => {
   return [color, "#0A0F2C", "#00D9FF"];
 };
 
-const mapPhotoToDesign = (photo: UnsplashPhoto): Design => {
+export const mapPhotoToDesign = (photo: UnsplashPhoto, seed: DesignSeed): Design => {
   const tags = photo.tags?.map(t => t.title || "").filter(Boolean) || [];
   return {
     id: `unsplash-${photo.id}`,
     title: photo.description || photo.alt_description || "Curated Interior",
     image: photo.urls.regular,
-    roomType: guessRoom(tags),
-    style: guessStyle(tags),
-    colors: ["Neutral"],
-    materials: ["Mixed"],
-    propertyType: "Apartment",
-    budget: "$15k - $30k",
+    roomType: seed.roomType || guessRoom(tags),
+    style: seed.style || guessStyle(tags),
+    colors: seed.colors || ["Neutral"],
+    materials: seed.materials || ["Mixed"],
+    propertyType: seed.propertyType || "Apartment",
+    budget: seed.budget || "$15k - $30k",
     palette: buildPalette(photo.color),
     sources: [
       {
@@ -60,13 +81,17 @@ const mapPhotoToDesign = (photo: UnsplashPhoto): Design => {
   };
 };
 
-export async function fetchUnsplashDesigns(apiKey: string, signal?: AbortSignal) {
-  const query = encodeURIComponent("modern interior design living room");
+export async function searchUnsplash(
+  apiKey: string,
+  query: string,
+  signal?: AbortSignal
+) {
   const res = await fetch(
-    `https://api.unsplash.com/search/photos?query=${query}&per_page=24&orientation=landscape&content_filter=high`,
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=30&orientation=landscape&content_filter=high`,
     {
       headers: { Authorization: `Client-ID ${apiKey}` },
       signal,
+      next: { revalidate: 300 },
     }
   );
 
@@ -75,5 +100,5 @@ export async function fetchUnsplashDesigns(apiKey: string, signal?: AbortSignal)
   }
 
   const json = (await res.json()) as { results: UnsplashPhoto[] };
-  return json.results.map(mapPhotoToDesign);
+  return json.results;
 }
