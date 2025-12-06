@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useFilters } from "../context/FilterContext";
 import FiltersBar from "@/components/ui/FiltersBar";
@@ -8,12 +8,15 @@ import DesignCard from "@/components/ui/DesignCard";
 import { mockDesigns } from "@/lib/mockDesigns";
 import { applyFilters } from "@/lib/filterEngine";
 import type { Design } from "@/lib/types";
+import { dedupe, fetchPexelsBatch, fetchUnsplashBatch } from "@/lib/imageLoader";
 
 export default function SwipePage() {
   const { images, favorites, toggleFavorite } = useApp();
   const { filters } = useFilters();
   const [index, setIndex] = useState(0);
   const [swipePool, setSwipePool] = useState<Design[]>([]);
+  const [nextPage, setNextPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   console.log("TOTAL DESIGNS =", mockDesigns.length);
 
@@ -22,12 +25,37 @@ export default function SwipePage() {
     const filtered = applyFilters(base, filters);
     setSwipePool(filtered);
     setIndex(0);
+    setNextPage(1);
   }, [filters, images]);
 
   const current = useMemo(
     () => (index < swipePool.length ? swipePool[index] : null),
     [swipePool, index]
   );
+
+  const loadNextBatch = useCallback(async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    const pageToLoad = nextPage;
+    try {
+      const [unsplash, pexels] = await Promise.all([
+        fetchUnsplashBatch(filters, pageToLoad, 20),
+        fetchPexelsBatch(filters, pageToLoad, 20),
+      ]);
+      const combined = dedupe([...unsplash, ...pexels], swipePool);
+      const filteredNew = applyFilters(combined, filters);
+      if (filteredNew.length) {
+        setSwipePool((prev) => dedupe([...prev, ...filteredNew], prev));
+      }
+      setNextPage(pageToLoad + 1);
+      setLoadingMore(false);
+    } catch (_err) {
+      setTimeout(() => {
+        setLoadingMore(false);
+        loadNextBatch();
+      }, 1500);
+    }
+  }, [filters, nextPage, swipePool, loadingMore]);
 
   if (!swipePool.length) {
     return (
@@ -53,6 +81,9 @@ export default function SwipePage() {
 
   const onNext = () => {
     setIndex((prev) => prev + 1);
+    if (index >= swipePool.length - 10) {
+      loadNextBatch();
+    }
   };
 
   return (
