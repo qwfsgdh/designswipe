@@ -64,19 +64,36 @@ export type FilterState = {
   qualityMin?: number;
 };
 
-export type DesignBreakdownItem = {
-  category: string;
+export type ProductLink = {
+  shop: string;
   title: string;
-  material: string;
-  palette: string;
-  style: string;
+  url: string;
+  priceApprox?: number;
+  currency?: string;
   similarity: number; // 0–1
-  link1?: string;
-  link2?: string;
-  link3?: string;
+  note?: string;
+};
+
+export type BreakdownItem = {
+  id: string;
+  category: string;
+  role: "primary" | "secondary" | "accent";
+  title: string;
+  description: string;
+  style: string;
+  palette: string;
+  material: string;
+  importance: 1 | 2 | 3;
+  zone: "seating" | "textiles" | "lighting" | "storage" | "decor";
+  notes?: string[];
+  products: ProductLink[];
 };
 
 export type DesignBreakdown = {
   designId: string;
-  items: DesignBreakdownItem[];
+  summary: string;
+  difficulty: "easy" | "medium" | "hard";
+  mainStyle: string;
+  keyPoints: string[];
+  items: BreakdownItem[];
 };
