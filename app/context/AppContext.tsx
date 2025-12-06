@@ -94,23 +94,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (!supabase) {
-      alert("Google login is not configured yet. Please set Supabase keys.");
-      return;
+      throw new Error(
+        "Supabase не сконфигурирован. Укажите NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      );
     }
-    const basePath =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/designswipe")
-        ? "/designswipe"
-        : "";
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}${basePath}/profile`
+        ? `${window.location.origin}/profile`
         : undefined;
 
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: redirectTo ? { redirectTo } : undefined,
     });
+
+    if (error) {
+      throw error;
+    }
   };
 
   const signOut = async () => {

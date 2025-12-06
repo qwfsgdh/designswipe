@@ -21,3 +21,13 @@ NEXT_PUBLIC_UNSPLASH_ACCESS_KEY=your_key_here
 ```
 
 Без ключа приложение использует встроенную библиотеку моков.
+
+### Auth через Google (Supabase)
+
+1) В Supabase включите Google OAuth и возьмите значения:
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+2) Добавьте их в `.env.local` или воспользуйтесь `.env.example`.
+3) Redirect URL укажите `https://<ваш-домен>/auth/v1/callback` (и `http://localhost:3000/auth/v1/callback` для локалки).
