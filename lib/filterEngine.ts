@@ -1,6 +1,9 @@
-import type { Design, FilterState } from "./types";
+import { Design, FilterState } from "@/lib/types";
 
-export function applyFilters(designs: Design[], filters: FilterState): Design[] {
+export function applyFilters(
+  designs: Design[],
+  filters: FilterState
+): Design[] {
   const {
     style,
     room,
@@ -13,6 +16,7 @@ export function applyFilters(designs: Design[], filters: FilterState): Design[] 
     qualityMin,
   } = filters;
 
+  // 1️⃣ STRICT MATCH
   let result = designs.filter((d) => {
     if (style && d.style !== style) return false;
     if (room && d.room !== room) return false;
@@ -22,24 +26,30 @@ export function applyFilters(designs: Design[], filters: FilterState): Design[] 
     if (material && d.material !== material) return false;
     if (orientation && d.orientation !== orientation) return false;
     if (theme && d.theme !== theme) return false;
-    if (typeof qualityMin === "number" && d.qualityScore < qualityMin) {
-      return false;
-    }
+    if (qualityMin && d.qualityScore < qualityMin) return false;
     return true;
   });
 
-  if (result.length < 24) {
-    const sorted = [...designs].sort((a, b) => b.qualityScore - a.qualityScore);
+  // 2️⃣ Fallback if too few (ideal interior UX)
+  if (result.length < 20) {
+    // candidates sorted by quality descending
+    const sorted = [...designs].sort(
+      (a, b) => b.qualityScore - a.qualityScore
+    );
 
-    result = sorted.filter((d) => {
+    // expand preference: same style or same room if user selected them
+    const expanded = sorted.filter((d) => {
       if (style && d.style !== style) return false;
       if (room && d.room !== room) return false;
-      if (typeof qualityMin === "number" && d.qualityScore < qualityMin) return false;
+      if (qualityMin && d.qualityScore < qualityMin) return false;
       return true;
     });
 
-    if (result.length < 24) {
-      result = sorted.slice(0, 24);
+    // If expanded still small — fallback is just best possible
+    if (expanded.length >= 20) {
+      result = expanded.slice(0, 40);
+    } else {
+      result = sorted.slice(0, 40);
     }
   }
 
