@@ -1,4 +1,5 @@
 import type { Design, FilterState } from "./types";
+import { STYLE_KEYWORDS, fuzzyMatch } from "./styleKeywords";
 
 const normalize = (value: string) =>
   value.trim().toLowerCase().replace(/\s+/g, "_");
@@ -9,8 +10,13 @@ const matches = (value: string | number, filterValue: string | null) => {
 };
 
 export const applyFilters = (designs: Design[], filters: FilterState) => {
-  return designs.filter((design) => {
-    if (!matches(design.style, filters.style)) return false;
+  const filtered = designs.filter((design) => {
+    const description = `${design.title} ${design.description || ""}`;
+
+    if (filters.style) {
+      const keywords = STYLE_KEYWORDS[filters.style] || [];
+      if (!fuzzyMatch(description, keywords)) return false;
+    }
     if (!matches(design.room, filters.room)) return false;
     if (!matches(design.palette, filters.palette)) return false;
     if (!matches(design.budget, filters.budget)) return false;
@@ -31,4 +37,12 @@ export const applyFilters = (designs: Design[], filters: FilterState) => {
     }
     return true;
   });
+
+  if (filtered.length < 8) {
+    return designs
+      .filter((design) => design.qualityScore >= (filters.qualityMin ?? 30))
+      .slice(0, 20);
+  }
+
+  return filtered;
 };

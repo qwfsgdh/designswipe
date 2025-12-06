@@ -22,13 +22,18 @@ export default function DesignCard({
 }: Props) {
   return (
     <div className="mt-4 flex flex-col gap-4">
-      <div className="relative w-full max-w-[900px] mx-auto rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl">
+      <div
+        className="relative mx-auto"
+        style={{ maxWidth: "90vw", maxHeight: "75vh" }}
+      >
         <Image
           src={image.src}
           alt={image.title}
-          width={900}
-          height={600}
-          style={{ objectFit: "cover", borderRadius: "1rem" }}
+          fill
+          sizes="90vw"
+          style={{
+            objectFit: image.orientation === "vertical" ? "contain" : "cover",
+          }}
           priority={priority}
         />
 

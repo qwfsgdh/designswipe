@@ -2,6 +2,7 @@ export type Design = {
   id: string;
   title: string;
   src: string;
+  description?: string;
   style:
     | "modern"
     | "classic"

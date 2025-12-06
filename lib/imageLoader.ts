@@ -15,6 +15,14 @@ const isInteriorImage = (description?: string | null, tags: string[] = []) => {
   return good.some((word) => text.includes(word));
 };
 
+export function optimizeUrl(url: string): string {
+  if (!url) return url;
+  if (url.includes("?")) {
+    return `${url}&auto=format&fit=crop&w=1200&q=70`;
+  }
+  return `${url}?auto=format&fit=crop&w=1200&q=70`;
+}
+
 const buildQuery = (filters: FilterState) => {
   const parts = [
     filters.style,
@@ -75,6 +83,7 @@ const deriveDesign = (base: Partial<Design>, fallback: FilterState): Design => {
       base.orientation ||
       (pick("orientation", "horizontal") as Design["orientation"]),
     qualityScore: base.qualityScore ?? 80,
+    description: base.description || "",
   };
 };
 
@@ -125,8 +134,13 @@ export async function fetchUnsplashBatch(
       const design = deriveDesign(
         {
           id: `unsplash-${item.id}`,
-          src: item.urls?.regular || item.urls?.full || "",
+          src: optimizeUrl(item.urls?.regular || item.urls?.full || ""),
           title: desc || "Unsplash Interior",
+          orientation:
+            item.width && item.height && item.width >= item.height
+              ? "horizontal"
+              : "vertical",
+          description: desc,
         },
         filters
       );
@@ -166,8 +180,15 @@ export async function fetchPexelsBatch(
       const design = deriveDesign(
         {
           id: `pexels-${item.id}`,
-          src: item.src?.large2x || item.src?.large || item.src?.medium || "",
+          src: optimizeUrl(
+            item.src?.large2x || item.src?.large || item.src?.medium || ""
+          ),
           title: desc || "Pexels Interior",
+          orientation:
+            item.width && item.height && item.width >= item.height
+              ? "horizontal"
+              : "vertical",
+          description: desc,
         },
         filters
       );
