@@ -10,7 +10,7 @@ const matches = (value: string | number, filterValue: string | null) => {
 };
 
 export const applyFilters = (designs: Design[], filters: FilterState) => {
-  const filtered = designs.filter((design) => {
+  const filteredRaw = designs.filter((design) => {
     const description = `${design.title} ${design.description || ""}`;
 
     if (filters.style) {
@@ -38,10 +38,16 @@ export const applyFilters = (designs: Design[], filters: FilterState) => {
     return true;
   });
 
+  let filtered = filteredRaw;
+
   if (filtered.length < 8) {
-    return designs
+    filtered = designs
       .filter((design) => design.qualityScore >= (filters.qualityMin ?? 30))
       .slice(0, 20);
+  }
+
+  if (filtered.length < 6 && designs.length > 10) {
+    filtered = designs.slice(0, 12);
   }
 
   return filtered;

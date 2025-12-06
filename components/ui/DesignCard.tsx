@@ -20,6 +20,8 @@ export default function DesignCard({
   onNext,
   priority = false,
 }: Props) {
+  const onSkip = () => onNext();
+
   return (
     <div className="mt-4 flex flex-col gap-4">
       <div
@@ -34,6 +36,7 @@ export default function DesignCard({
           style={{
             objectFit: image.orientation === "vertical" ? "contain" : "cover",
           }}
+          onError={onSkip}
           priority={priority}
         />
 
