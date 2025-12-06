@@ -6,34 +6,41 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
-type Filters = {
-  style: string | null;
-  roomType: string | null;
-  colorPalette: string | null;
-  budget: string | null;
-};
+import type { FilterState } from "@/lib/types";
 
 type FilterContextValue = {
-  filters: Filters;
-  setFilter: (key: keyof Filters, value: string | null) => void;
+  filters: FilterState;
+  setFilter: (key: keyof FilterState, value: FilterState[keyof FilterState]) => void;
   resetFilters: () => void;
+};
+
+const defaultFilters: FilterState = {
+  style: null,
+  room: null,
+  palette: null,
+  budget: null,
+  lighting: null,
+  furnitureDensity: null,
+  material: null,
+  theme: null,
+  composition: null,
+  dominantColor: null,
+  windowPresence: null,
+  plantPresence: null,
+  flooring: null,
+  artPresence: null,
+  aspectRatio: null,
+  orientation: null,
+  qualityMin: null,
 };
 
 const FilterContext = createContext<FilterContextValue | null>(null);
 
-const defaultFilters: Filters = {
-  style: null,
-  roomType: null,
-  colorPalette: null,
-  budget: null,
-};
-
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
-  const setFilter = (key: keyof Filters, value: string | null) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const setFilter = (key: keyof FilterState, value: FilterState[keyof FilterState]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const resetFilters = () => setFilters(defaultFilters);

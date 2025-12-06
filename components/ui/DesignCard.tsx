@@ -1,12 +1,12 @@
 "use client";
 
-import type { DesignImage } from "@/lib/types";
+import type { Design } from "@/lib/types";
 import { Heart, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 type Props = {
-  image: DesignImage;
+  image: Design;
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onNext: () => void;
@@ -48,7 +48,7 @@ export default function DesignCard({
         <div>
           <h2 className="text-lg font-semibold">{image.title}</h2>
           <p className="text-xs text-slate-400">
-            {image.style} · {image.roomType} · {image.colorPalette} ·{" "}
+            {image.style} · {image.room} · {image.palette} ·{" "}
             {image.budget.toUpperCase()}
           </p>
         </div>

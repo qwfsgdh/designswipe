@@ -40,7 +40,7 @@ export default function BreakdownPage() {
       <div className="rounded-xl border border-slate-700 bg-slate-900/70 p-4">
         <div className="text-lg font-semibold">{design.title}</div>
         <div className="text-xs text-slate-400">
-          {design.style} · {design.roomType} · {design.colorPalette} ·{" "}
+          {design.style} · {design.room} · {design.palette} ·{" "}
           {design.budget.toUpperCase()}
         </div>
         <p className="mt-3 text-sm text-slate-300">

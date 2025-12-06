@@ -6,31 +6,30 @@ import { useFilters } from "../context/FilterContext";
 import FiltersBar from "@/components/ui/FiltersBar";
 import DesignCard from "@/components/ui/DesignCard";
 import { mockDesigns } from "@/lib/mockDesigns";
+import { applyFilters } from "@/lib/filterEngine";
+import type { Design } from "@/lib/types";
 
 export default function SwipePage() {
   const { images, favorites, toggleFavorite } = useApp();
   const { filters } = useFilters();
   const [index, setIndex] = useState(0);
+  const [swipePool, setSwipePool] = useState<Design[]>([]);
 
   console.log("TOTAL DESIGNS =", mockDesigns.length);
 
-  const filtered = useMemo(() => {
-    const base = images.length ? images : mockDesigns;
-    return base.filter((img) => {
-      if (filters.style && img.style !== filters.style) return false;
-      if (filters.roomType && img.roomType !== filters.roomType) return false;
-      if (filters.colorPalette && img.colorPalette !== filters.colorPalette)
-        return false;
-      if (filters.budget && img.budget !== filters.budget) return false;
-      return true;
-    });
-  }, [images, filters]);
-
   useEffect(() => {
+    const base = images.length ? images : mockDesigns;
+    const filtered = applyFilters(base, filters);
+    setSwipePool(filtered);
     setIndex(0);
-  }, [filters]);
+  }, [filters, images]);
 
-  if (!filtered.length) {
+  const current = useMemo(
+    () => (index < swipePool.length ? swipePool[index] : null),
+    [swipePool, index]
+  );
+
+  if (!swipePool.length) {
     return (
       <div className="flex flex-col gap-4 p-4">
         <FiltersBar />
@@ -41,7 +40,7 @@ export default function SwipePage() {
     );
   }
 
-  if (index >= filtered.length) {
+  if (index >= swipePool.length) {
     return (
       <div className="flex flex-col gap-4 p-4">
         <FiltersBar />
@@ -51,8 +50,6 @@ export default function SwipePage() {
       </div>
     );
   }
-
-  const current = filtered[index] ?? null;
 
   const onNext = () => {
     setIndex((prev) => prev + 1);

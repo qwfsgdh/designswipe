@@ -7,20 +7,20 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { DesignImage } from "@/lib/types";
+import type { Design } from "@/lib/types";
 import { mockDesigns } from "@/lib/mockDesigns";
 
 type AppContextValue = {
-  images: DesignImage[];
-  favorites: DesignImage[];
+  images: Design[];
+  favorites: Design[];
   toggleFavorite: (id: string) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [images, setImages] = useState<DesignImage[]>([]);
-  const [favorites, setFavorites] = useState<DesignImage[]>([]);
+  const [images, setImages] = useState<Design[]>([]);
+  const [favorites, setFavorites] = useState<Design[]>([]);
 
   useEffect(() => {
     setImages(mockDesigns);

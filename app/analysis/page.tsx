@@ -28,7 +28,7 @@ export default function AnalysisPage() {
           >
             <div className="text-sm font-medium">{item.title}</div>
             <div className="text-xs text-slate-400">
-              {item.style} · {item.roomType} · {item.colorPalette}
+              {item.style} · {item.room} · {item.palette}
             </div>
           </li>
         ))}
