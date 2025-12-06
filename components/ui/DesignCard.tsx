@@ -13,59 +13,58 @@ type Props = {
 export default function DesignCard({ design, onNext, onPrev }: Props) {
   return (
     <div className="w-full flex flex-col items-center gap-4">
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "900px",
-          height: "600px",
-          position: "relative",
-          borderRadius: "16px",
-          overflow: "hidden",
-          background: "#111",
-        }}
-      >
+      {/* Заголовок + описание */}
+      <div className="w-full max-w-5xl flex flex-col gap-1">
+        <h2 className="text-xl font-semibold">{design.title}</h2>
+        <p className="text-sm text-muted-foreground">{design.description}</p>
+      </div>
+
+      {/* Картинка */}
+      <div className="relative w-full max-w-5xl max-h-[75vh] aspect-[3/2] rounded-xl overflow-hidden bg-muted">
         <Image
           src={design.src}
           alt={design.title}
-          width={900}
-          height={600}
-          style={{
-            objectFit: design.orientation === "vertical" ? "contain" : "cover",
-            borderRadius: "12px",
-          }}
-          className="w-full h-full"
-          unoptimized
+          fill
+          sizes="(max-width: 1024px) 100vw, 900px"
+          className={
+            design.orientation === "vertical" ? "object-contain" : "object-cover"
+          }
+          priority={false}
         />
       </div>
 
-      <div className="text-center text-sm text-neutral-300 max-w-xl px-4">
-        <div className="font-semibold mb-1">{design.title}</div>
-        <div className="text-neutral-400">{design.description}</div>
-      </div>
-
-      <div className="flex gap-4 mt-2">
-        {onPrev && (
+      {/* Кнопки действий */}
+      <div className="w-full max-w-5xl flex items-center justify-between mt-2">
+        {onPrev ? (
           <button
-            className="px-4 py-2 rounded-full border border-neutral-600 text-sm"
+            type="button"
             onClick={onPrev}
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
-            Назад
+            ← Назад
           </button>
+        ) : (
+          <span />
         )}
+
         <button
-          className="px-6 py-2 rounded-full bg-white text-black text-sm font-semibold"
+          type="button"
           onClick={onNext}
+          className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
         >
           Следующий интерьер
         </button>
       </div>
 
-      <Link
-        href={`/breakdown/${design.id}`}
-        className="text-xs text-sky-300 underline"
-      >
-        Разбор: что за мебель на фото
-      </Link>
+      {/* Линк на разбор */}
+      <div className="w-full max-w-5xl flex justify-start">
+        <Link
+          href={`/breakdown/${design.id}`}
+          className="text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2"
+        >
+          Разбор: что за мебель на фото
+        </Link>
+      </div>
     </div>
   );
 }
