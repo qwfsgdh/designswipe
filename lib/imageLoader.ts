@@ -17,8 +17,15 @@ const isInteriorImage = (description?: string | null, tags: string[] = []) => {
 
 export function optimizeUrl(url: string): string {
   if (!url) return url;
-  const base = url.split("?")[0];
-  return `${base}?auto=format&fit=crop&w=1200&q=70`;
+  const [base, q] = url.split("?");
+  const params = new URLSearchParams(q ?? "");
+
+  params.set("auto", "format");
+  params.set("fit", "crop");
+  params.set("w", "1200");
+  params.set("q", "70");
+
+  return `${base}?${params.toString()}`;
 }
 
 const buildQuery = (filters: FilterState) => {
