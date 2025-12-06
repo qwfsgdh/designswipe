@@ -1,95 +1,69 @@
 "use client";
-import React, { memo } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { ImageWithFallback } from "./ImageWithFallback";
 
-interface Design {
-  id: string | number;
-  image: string;
-  roomType: string;
-  style: string[];
-}
+import type { DesignImage } from "@/lib/types";
+import { Heart, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
-
-interface DesignCardProps {
-  design: Design;
-  onSwipe: (direction: "left" | "right") => void;
-  style?: React.CSSProperties;
-}
-
-const DesignCardComponent = ({ design, onSwipe, style }: DesignCardProps) => {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
-
-  const handleDragEnd = (_: any, info: any) => {
-    if (Math.abs(info.offset.x) > 120) {
-      onSwipe(info.offset.x > 0 ? "right" : "left");
-    }
-  };
-
-  return (
-    <motion.div
-      drag="x"
-      dragElastic={0.2}
-      dragConstraints={{ left: 0, right: 0 }}
-      style={{ x, rotate, opacity, ...style }}
-      onDragEnd={handleDragEnd}
-      transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      className="absolute w-full max-w-md select-none cursor-grab active:cursor-grabbing"
-    >
-      <div className="rounded-[24px] overflow-hidden shadow-[0_8px_36px_rgba(0,0,0,0.45)] bg-[#0B0F24] border border-white/5">
-        {/* Image */}
-        <div className="relative aspect-[3/4] overflow-hidden">
-          <ImageWithFallback
-            src={design.image}
-            alt={`${design.roomType} - ${design.style.join(", ")}`}
-            className="object-cover"
-            width={600}
-            height={800}
-            priority={false}
-          />
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
-          {/* Info bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h3 className="mb-2 text-lg font-semibold">{design.roomType}</h3>
-            <div className="flex flex-wrap gap-2">
-              {design.style.map((tag, i) => (
-                <span
-                  key={`${design.id}-${i}`} // уникальный ключ
-                  className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm border border-white/20"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Swipe indicators */}
-      <motion.div
-        style={{
-          opacity: useTransform(x, [60, 150], [0, 1]),
-        }}
-        className="absolute top-10 right-8 px-6 py-3 bg-green-500/90 backdrop-blur-sm rounded-[20px] rotate-12 pointer-events-none"
-      >
-        <span className="text-xl font-bold">LIKE</span>
-      </motion.div>
-
-      <motion.div
-        style={{
-          opacity: useTransform(x, [-150, -60], [1, 0]),
-        }}
-        className="absolute top-10 left-8 px-6 py-3 bg-red-500/90 backdrop-blur-sm rounded-[20px] -rotate-12 pointer-events-none"
-      >
-        <span className="text-xl font-bold">NOPE</span>
-      </motion.div>
-    </motion.div>
-  );
+type Props = {
+  image: DesignImage;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  onNext: () => void;
 };
 
-export const DesignCard = memo(DesignCardComponent);
+export default function DesignCard({
+  image,
+  isFavorite,
+  onToggleFavorite,
+  onNext,
+}: Props) {
+  return (
+    <div className="mt-4 flex flex-col gap-4">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-slate-700 bg-slate-900">
+        <Image
+          src={image.src}
+          alt={image.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 600px"
+        />
+
+        <button
+          onClick={onToggleFavorite}
+          className="absolute top-3 right-3 rounded-full bg-slate-900/70 p-2"
+        >
+          <Heart
+            className={`w-5 h-5 ${
+              isFavorite ? "text-pink-400 fill-pink-400" : "text-slate-100"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">{image.title}</h2>
+          <p className="text-xs text-slate-400">
+            {image.style} · {image.roomType} · {image.colorPalette} ·{" "}
+            {image.budget.toUpperCase()}
+          </p>
+        </div>
+        <button
+          onClick={onNext}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500 text-slate-950 text-sm font-medium"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      <Link
+        href={`/breakdown/${image.id}`}
+        className="text-xs text-sky-300 underline"
+      >
+        Open breakdown (стул — ИКЕА, стол — Леруа и т.д.)
+      </Link>
+    </div>
+  );
+}

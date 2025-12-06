@@ -1,218 +1,66 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { Design } from "@/lib/designLibrary";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { DesignImage } from "@/lib/types";
+import { mockDesigns } from "@/lib/mockDesigns";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
-// Тип юзера (можно расширять при необходимости)
-interface UserType {
-  id: string;
-  email: string | null;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-}
-
-interface AppContextType {
-  user: UserType | null;
-  loading: boolean;
-
-  preferences: PreferenceScores;
-  registerSwipe: (card: Design, direction: "left" | "right") => void;
-  getPreferenceScore: (card: Design) => number;
-
-  // избранное
-  favorites: Design[];
-  addFavorite: (card: Design) => void;
-  removeFavorite: (id: string) => void;
-  clearFavorites: () => void;
-
-  // auth
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-type PreferenceMap = Record<string, number>;
-export type PreferenceScores = {
-  styles: PreferenceMap;
-  roomTypes: PreferenceMap;
-  colors: PreferenceMap;
-  materials: PreferenceMap;
-  propertyType: PreferenceMap;
-  budget: PreferenceMap;
+type AppContextValue = {
+  images: DesignImage[];
+  favorites: DesignImage[];
+  toggleFavorite: (id: string) => void;
 };
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [preferences, setPreferences] = useState<PreferenceScores>({
-    styles: {},
-    roomTypes: {},
-    colors: {},
-    materials: {},
-    propertyType: {},
-    budget: {},
-  });
+const AppContext = createContext<AppContextValue | null>(null);
 
-  // --------------------------
-  // ⭐ Авторизация
-  // --------------------------
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [images, setImages] = useState<DesignImage[]>([]);
+  const [favorites, setFavorites] = useState<DesignImage[]>([]);
 
   useEffect(() => {
-    const getUser = async () => {
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-
-      // Завершаем OAuth-колбек, если есть code из Supabase
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code");
-        if (code) {
-          await supabase.auth.exchangeCodeForSession(code);
-          url.searchParams.delete("code");
-          url.searchParams.delete("state");
-          const cleaned = url.toString();
-          window.history.replaceState({}, "", cleaned);
-        }
-      }
-
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user as UserType | null);
-      setLoading(false);
-    };
-
-    getUser();
-
-    if (!supabase) return;
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user as UserType | null);
-      }
-    );
-
-    return () => {
-      listener?.subscription?.unsubscribe();
-    };
+    setImages(mockDesigns);
   }, []);
 
-  const signInWithGoogle = async () => {
-    if (!supabase) {
-      throw new Error(
-        "Supabase не сконфигурирован. Укажите NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY."
-      );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("designswipe:favorites");
+      if (raw) {
+        setFavorites(JSON.parse(raw));
+      }
+    } catch {
+      // ignore
     }
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/profile`
-        : undefined;
+  }, []);
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: redirectTo ? { redirectTo } : undefined,
-    });
-
-    if (error) {
-      throw error;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("designswipe:favorites", JSON.stringify(favorites));
+    } catch {
+      // ignore
     }
-  };
+  }, [favorites]);
 
-  const signOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    setUser(null);
-    window.location.href = "/";
-  };
-
-  // --------------------------
-  // ⭐ Избранное
-  // --------------------------
-
-  const [favorites, setFavorites] = useState<Design[]>([]);
-
-  const addFavorite = (card: Design) => {
+  const toggleFavorite = (id: string) => {
     setFavorites(prev => {
-      // не добавляем дубли
-      if (prev.some(item => item.id === card.id)) return prev;
-      return [...prev, card];
+      const exists = prev.find(item => item.id === id);
+      if (exists) {
+        return prev.filter(item => item.id !== id);
+      }
+      const found = images.find(img => img.id === id);
+      if (!found) return prev;
+      return [...prev, found];
     });
-  };
-
-  const removeFavorite = (id: string) => {
-    setFavorites(prev => prev.filter(item => item.id !== id));
-  };
-
-  const clearFavorites = () => setFavorites([]);
-
-  const bump = (map: PreferenceMap, keys: string[], delta: number) => {
-    const updated: PreferenceMap = { ...map };
-    keys.forEach(key => {
-      updated[key] = (updated[key] || 0) + delta;
-    });
-    return updated;
-  };
-
-  const registerSwipe = (card: Design, direction: "left" | "right") => {
-    const delta = direction === "right" ? 1 : -0.5;
-
-    setPreferences(prev => ({
-      styles: bump(prev.styles, card.style, delta),
-      roomTypes: bump(prev.roomTypes, [card.roomType], delta),
-      colors: bump(prev.colors, card.colors, delta),
-      materials: bump(prev.materials, card.materials, delta),
-      propertyType: bump(prev.propertyType, [card.propertyType], delta),
-      budget: bump(prev.budget, [card.budget], delta),
-    }));
-
-    if (direction === "right") {
-      addFavorite(card);
-    }
-  };
-
-  const getPreferenceScore = (card: Design) => {
-    const sum = (map: PreferenceMap, keys: string[]) =>
-      keys.reduce((acc, key) => acc + (map[key] || 0), 0);
-
-    return (
-      sum(preferences.styles, card.style) +
-      sum(preferences.colors, card.colors) +
-      sum(preferences.materials, card.materials) +
-      sum(preferences.roomTypes, [card.roomType]) +
-      sum(preferences.propertyType, [card.propertyType]) +
-      sum(preferences.budget, [card.budget])
-    );
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        loading,
-
-        preferences,
-        registerSwipe,
-        getPreferenceScore,
-
-        favorites,
-        addFavorite,
-        removeFavorite,
-        clearFavorites,
-
-        signInWithGoogle,
-        signOut,
-      }}
-    >
+    <AppContext.Provider value={{ images, favorites, toggleFavorite }}>
       {children}
     </AppContext.Provider>
   );
@@ -220,6 +68,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error("useApp must be used inside AppProvider");
+  if (!ctx) {
+    throw new Error("useApp must be used inside AppProvider");
+  }
   return ctx;
 }

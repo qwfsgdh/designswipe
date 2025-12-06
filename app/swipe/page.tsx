@@ -1,276 +1,55 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Heart, X, SlidersHorizontal } from "lucide-react";
-import { DesignCard } from "@/components/ui/DesignCard";
-import { useFilters } from "@/app/context/FilterContext";
-import { useApp } from "@/app/context/AppContext";
-import { designLibrary, Design } from "@/lib/designLibrary";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useMemo, useState } from "react";
+import { useApp } from "../context/AppContext";
+import { useFilters } from "../context/FilterContext";
+import FiltersBar from "@/components/ui/FiltersBar";
+import DesignCard from "@/components/ui/DesignCard";
 
 export default function SwipePage() {
+  const { images, favorites, toggleFavorite } = useApp();
   const { filters } = useFilters();
-  const { registerSwipe, getPreferenceScore } = useApp();
-  const router = useRouter();
+  const [index, setIndex] = useState(0);
 
-  const [remoteDesigns, setRemoteDesigns] = useState<Design[]>([]);
-  const [remoteError, setRemoteError] = useState<string | null>(null);
-  const [cards, setCards] = useState<Design[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [noResults, setNoResults] = useState(false);
+  const filtered = useMemo(() => {
+    return images.filter((img) => {
+      if (filters.style && img.style !== filters.style) return false;
+      if (filters.roomType && img.roomType !== filters.roomType) return false;
+      if (filters.colorPalette && img.colorPalette !== filters.colorPalette)
+        return false;
+      if (filters.budget && img.budget !== filters.budget) return false;
+      return true;
+    });
+  }, [images, filters]);
 
-  const fetchRemote = useCallback(async () => {
-    setRemoteError(null);
-    try {
-      const params = new URLSearchParams();
-      if (filters.styles[0]) params.append("style", filters.styles[0]);
-      if (filters.roomTypes[0]) params.append("room", filters.roomTypes[0]);
-      if (filters.colors[0]) params.append("color", filters.colors[0]);
-      if (filters.materials[0]) params.append("material", filters.materials[0]);
-      if (filters.propertyType[0]) params.append("property", filters.propertyType[0]);
-      if (filters.budget) params.append("budget", filters.budget);
+  const current = filtered[index] ?? null;
 
-      const res = await fetch(`/api/designs?${params.toString()}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to load designs (${res.status})`);
-      }
-      const data = (await res.json()) as { items: Design[] };
-      setRemoteDesigns(data.items);
-    } catch (err) {
-      setRemoteError(
-        err instanceof Error ? err.message : "Failed to load external designs"
-      );
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    fetchRemote();
-  }, [fetchRemote]);
-
-  const baseLibrary = useMemo(
-    () => (remoteDesigns.length ? [...remoteDesigns, ...designLibrary] : designLibrary),
-    [remoteDesigns]
-  );
-
-  const filteredLibrary = useMemo(() => {
-    const matches = (design: Design) => {
-      const matchesStyles =
-        !filters.styles.length ||
-        filters.styles.some((s) => design.style.includes(s));
-      const matchesRooms =
-        !filters.roomTypes.length || filters.roomTypes.includes(design.roomType);
-      const matchesColors =
-        !filters.colors.length ||
-        filters.colors.some((c) => design.colors.includes(c));
-      const matchesMaterials =
-        !filters.materials.length ||
-        filters.materials.some((m) => design.materials.includes(m));
-      const matchesProperty =
-        !filters.propertyType.length ||
-        filters.propertyType.includes(design.propertyType);
-      const matchesBudget =
-        !filters.budget || design.budget === filters.budget || design.budget === "Flexible";
-
-      return (
-        matchesStyles &&
-        matchesRooms &&
-        matchesColors &&
-        matchesMaterials &&
-        matchesProperty &&
-        matchesBudget
-      );
-    };
-
-    return baseLibrary.filter(matches);
-  }, [filters, baseLibrary]);
-
-  const hasFilters =
-    filters.styles.length ||
-    filters.roomTypes.length ||
-    filters.colors.length ||
-    filters.materials.length ||
-    filters.propertyType.length ||
-    !!filters.budget;
-
-  const sortedLibrary = useMemo(() => {
-    const base =
-      filteredLibrary.length || !hasFilters ? filteredLibrary || baseLibrary : [];
-    return [...base]
-      .map((design) => ({
-        design,
-        score: getPreferenceScore(design),
-      }))
-      .sort((a, b) => b.score - a.score);
-  }, [filteredLibrary, getPreferenceScore, baseLibrary]);
-
-  useEffect(() => {
-    setLoading(true);
-
-    const pool = sortedLibrary.map((item) => item.design);
-    const shuffled =
-      pool.length > 0
-        ? pool
-        : hasFilters
-          ? []
-          : designLibrary;
-
-    setCards(shuffled);
-    setCurrentIndex(0);
-    setNoResults(Boolean(hasFilters && !shuffled.length));
-    setLoading(false);
-  }, [filters, hasFilters, sortedLibrary]);
-
-  const handleSwipe = (dir: "left" | "right") => {
-    const card = cards[currentIndex];
-
-    if (dir === "right" && card) {
-      registerSwipe(card, "right");
-    } else if (card) {
-      registerSwipe(card, "left");
-    }
-
-    setTimeout(() => setCurrentIndex((prev) => prev + 1), 250);
+  const onNext = () => {
+    setIndex((prev) => {
+      const next = prev + 1;
+      if (next >= filtered.length) return 0;
+      return next;
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0F2C] text-gray-300">
-        Loading designs…
-      </div>
-    );
-  }
-
-  if (noResults) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A0F2C] text-gray-300">
-        <p className="mb-4 text-center">
-          No designs found for these filters.
-        </p>
-        <button
-          onClick={() => (window.location.href = "/filters")}
-          className="px-6 py-3 bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] rounded-[20px] text-[#0A0F2C] font-semibold"
-        >
-          Change Filters
-        </button>
-      </div>
-    );
-  }
-
-  const currentCard = cards[currentIndex];
-  const nextCard = cards[currentIndex + 1];
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 pb-32 pt-8 bg-[#0A0F2C] text-white">
-      {/* Header */}
-      <div className="w-full max-w-md mb-8 flex items-center justify-between">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-xl font-semibold"
-        >
-          DesignSwipe AI
-        </motion.div>
+    <div className="flex flex-col gap-4 p-4">
+      <FiltersBar />
 
-        <motion.button
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="glass-light px-4 py-2 rounded-[20px] flex items-center gap-2 hover:bg-white/10 transition-all"
-          onClick={() => router.push("/filters")}
-        >
-          <SlidersHorizontal className="w-5 h-5" />
-          <span>Filters</span>
-        </motion.button>
-      </div>
-
-      {remoteError && (
-        <p className="text-red-300 text-sm mb-4 max-w-md text-center">
-          {remoteError}
-        </p>
+      {!current && (
+        <div className="text-center text-slate-400 mt-20">
+          Нет подходящих интерьеров под текущие фильтры.
+        </div>
       )}
 
-      {/* Card stack */}
-      <div className="relative w-full max-w-md h-[600px] mb-8">
-        {currentIndex >= cards.length ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <div className="glass-light p-12 rounded-[24px] text-center">
-              <h3 className="mb-4 text-xl font-semibold">No more designs!</h3>
-              <p className="text-gray-400 mb-6">
-                You’ve seen all designs. Try new filters.
-              </p>
-              <button
-                onClick={() => setCurrentIndex(0)}
-                className="px-8 py-3 bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] rounded-[20px] text-[#0A0F2C] font-semibold"
-              >
-                Start Over
-              </button>
-            </div>
-          </motion.div>
-        ) : (
-          <AnimatePresence>
-            {nextCard && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <DesignCard
-                  key={`next-${nextCard.id}`}
-                  design={nextCard}
-                  onSwipe={() => {}}
-                  style={{ scale: 0.95, opacity: 0.5 }}
-                />
-              </div>
-            )}
-
-            {currentCard && (
-              <motion.div
-                key={`current-${currentCard.id}`}
-                className="absolute inset-0 flex items-center justify-center"
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                whileDrag={{ scale: 1.05 }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x > 100) handleSwipe("right");
-                  if (info.offset.x < -100) handleSwipe("left");
-                }}
-              >
-                <DesignCard design={currentCard} onSwipe={handleSwipe} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-      </div>
-
-      {/* Like / Dislike buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-6"
-      >
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/50 transition-all"
-          onClick={() => handleSwipe("left")}
-        >
-          <X className="w-8 h-8 text-red-400" />
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="w-20 h-20 rounded-full bg-gradient-to-r from-[#00D9FF] to-[#00B8DB] flex items-center justify-center shadow-[0_0_30px_rgba(0,217,255,0.3)] hover:shadow-[0_0_50px_rgba(0,217,255,0.5)] transition-all"
-          onClick={() => handleSwipe("right")}
-      >
-        <Heart className="w-10 h-10 text-[#0A0F2C] fill-[#0A0F2C]" />
-      </motion.button>
-    </motion.div>
+      {current && (
+        <DesignCard
+          image={current}
+          isFavorite={favorites.some((f) => f.id === current.id)}
+          onToggleFavorite={() => toggleFavorite(current.id)}
+          onNext={onNext}
+        />
+      )}
     </div>
   );
 }

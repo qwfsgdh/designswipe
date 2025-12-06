@@ -1,65 +1,54 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 
-// Тип состояния фильтров
-export interface FilterState {
-  styles: string[];
-  roomTypes: string[];
-  colors: string[];
-  materials: string[];
-  propertyType: string[];
+type Filters = {
+  style: string | null;
+  roomType: string | null;
+  colorPalette: string | null;
   budget: string | null;
-}
+};
 
-// Тип контекста
-interface FilterContextType {
-  filters: FilterState;
-  setFilters: (update: Partial<FilterState>) => void;
+type FilterContextValue = {
+  filters: Filters;
+  setFilter: (key: keyof Filters, value: string | null) => void;
   resetFilters: () => void;
-}
+};
 
-// Создание контекста
-const FilterContext = createContext<FilterContextType | undefined>(undefined);
+const FilterContext = createContext<FilterContextValue | null>(null);
 
-// Провайдер
-export const FilterProvider = ({ children }: { children: ReactNode }) => {
-  const [filters, setFiltersState] = useState<FilterState>({
-    styles: [],
-    roomTypes: [],
-    colors: [],
-    materials: [],
-    propertyType: [],
-    budget: null,
-  });
+const defaultFilters: Filters = {
+  style: null,
+  roomType: null,
+  colorPalette: null,
+  budget: null,
+};
 
-  const setFilters = (update: Partial<FilterState>) => {
-    setFiltersState((prev) => ({ ...prev, ...update }));
+export function FilterProvider({ children }: { children: ReactNode }) {
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+
+  const setFilter = (key: keyof Filters, value: string | null) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const resetFilters = () => {
-    setFiltersState({
-      styles: [],
-      roomTypes: [],
-      colors: [],
-      materials: [],
-      propertyType: [],
-      budget: null,
-    });
-  };
+  const resetFilters = () => setFilters(defaultFilters);
 
   return (
-    <FilterContext.Provider value={{ filters, setFilters, resetFilters }}>
+    <FilterContext.Provider value={{ filters, setFilter, resetFilters }}>
       {children}
     </FilterContext.Provider>
   );
-};
+}
 
-// Хук
-export const useFilters = () => {
-  const context = useContext(FilterContext);
-  if (!context) {
-    throw new Error("useFilters must be used within a FilterProvider");
+export function useFilters() {
+  const ctx = useContext(FilterContext);
+  if (!ctx) {
+    throw new Error("useFilters must be used inside FilterProvider");
   }
-  return context;
-};
+  return ctx;
+}
